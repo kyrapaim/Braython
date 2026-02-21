@@ -70,6 +70,7 @@ class Lexer:
                 'falso': TipoToken.FALSO,
                 'nulo': TipoToken.NULO,
                 'escreva': TipoToken.ESCREVA,
+                'escreve': TipoToken.ESCREVA,
                 'deixe': TipoToken.DEIXE,
             },
             'es': {
