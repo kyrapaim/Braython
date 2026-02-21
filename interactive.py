@@ -5,6 +5,7 @@ Just press the play button in VS Code to run this!
 """
 
 from compiler import Compiler
+from messages import msg
 import sys
 
 def clear_screen():
@@ -35,12 +36,13 @@ def get_language_choice():
         elif choice == '2':
             return 'es', 'Español'
         elif choice == '0':
-            print("\nAté logo!")
+            print("\n" + msg('bye', 'pt'))
             sys.exit(0)
         else:
             clear_screen()
             print_header()
-            print("❌ Opção inválida. Tente novamente.\n")
+            # Show invalid option in Portuguese since language not selected yet
+            print(f"❌ {msg('invalid_option', 'pt')}\n")
 
 def get_code(language_name):
     """Get code from user"""
@@ -134,7 +136,7 @@ def run_code(code, language, language_name):
     try:
         compiler.compile_and_run(code, language)
     except Exception as e:
-        print(f"\n❌ Erro: {e}")
+        print(f"\n❌ {msg('runtime_error', language)}: {e}")
     
     print(f"\n{'='*60}")
 
@@ -171,8 +173,8 @@ def main():
         if not code.strip():
             clear_screen()
             print_header()
-            print("⚠️  Nenhum código foi digitado.\n")
-            input("Pressione ENTER para continuar...")
+            print(f"⚠️  {msg('no_code', language)}\n")
+            input(msg('menu_prompt', language))
             clear_screen()
             continue
         

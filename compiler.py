@@ -1,5 +1,8 @@
 import re
 
+from lexer import Lexer, TipoToken
+from parser import ASTParser
+from messages import msg, translate_exception
 
 class Compiler:
     def __init__(self):
@@ -137,7 +140,18 @@ class Compiler:
     def compile_and_run(self, code: str, language: str):
         """ Compile the code and execute the generated Python."""
         python_code = self.compile(code, language)
-        exec(python_code)  # Caution: Using exec can be dangerous with untrusted input
+        try:
+            exec(python_code)
+        except Exception as e:
+            # Localized runtime error message and translated detail when possible
+            try:
+                print(f"{msg('runtime_error', language)}: {e}")
+                translated = translate_exception(e, language)
+                if translated:
+                    print(f"{translated}")
+            except Exception:
+                # Fallback if message localization fails
+                print(f"Runtime error: {e}")
 
     def compile_to_file(self, input_file: str, output_file: str, language: str):
         """ Read code from input_file, compile it, and save to output_file. """

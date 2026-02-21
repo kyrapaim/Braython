@@ -1,0 +1,79 @@
+diff --git a/__pycache__/compiler.cpython-314.pyc b/__pycache__/compiler.cpython-314.pyc
+index 9203a98..e8ed49c 100644
+Binary files a/__pycache__/compiler.cpython-314.pyc and b/__pycache__/compiler.cpython-314.pyc differ
+diff --git a/__pycache__/lexer.cpython-314.pyc b/__pycache__/lexer.cpython-314.pyc
+index c9da6e1..23a0370 100644
+Binary files a/__pycache__/lexer.cpython-314.pyc and b/__pycache__/lexer.cpython-314.pyc differ
+diff --git a/compiler.py b/compiler.py
+index a5309ca..7b49ec6 100644
+--- a/compiler.py
++++ b/compiler.py
+@@ -1,5 +1,6 @@
+ from lexer import Lexer, TipoToken
+ from parser import ASTParser
++from messages import msg, translate_exception
+ 
+ class Compiler:
+     def __init__(self):
+@@ -124,7 +125,12 @@ class Compiler:
+         try:
+             exec(python_code)
+         except Exception as e:
+-            print(f"Error executing code: {e}")
++            # Localized runtime error message and translated detail when possible
++            print(f"{msg('runtime_error', language)}: {e}")
++            translated = translate_exception(e, language)
++            if translated:
++                # show translated explanation on next line
++                print(f"{translated}")
+ 
+     def compile_to_file(self, input_file: str, output_file: str, language: str):
+         """ Read code from input_file, compile it, and save to output_file. """
+diff --git a/interactive.py b/interactive.py
+index e703b2c..d2f06a5 100644
+--- a/interactive.py
++++ b/interactive.py
+@@ -5,6 +5,7 @@ Just press the play button in VS Code to run this!
+ """
+ 
+ from compiler import Compiler
++from messages import msg
+ import sys
+ 
+ def clear_screen():
+@@ -35,12 +36,13 @@ def get_language_choice():
+         elif choice == '2':
+             return 'es', 'Español'
+         elif choice == '0':
+-            print("\nAté logo!")
++            print("\n" + msg('bye', 'pt'))
+             sys.exit(0)
+         else:
+             clear_screen()
+             print_header()
+-            print("❌ Opção inválida. Tente novamente.\n")
++            # Show invalid option in Portuguese since language not selected yet
++            print(f"❌ {msg('invalid_option', 'pt')}\n")
+ 
+ def get_code(language_name):
+     """Get code from user"""
+@@ -71,7 +73,7 @@ def run_code(code, language, language_name):
+     try:
+         compiler.compile_and_run(code, language)
+     except Exception as e:
+-        print(f"\n❌ Erro: {e}")
++        print(f"\n❌ {msg('runtime_error', language)}: {e}")
+     
+     print(f"\n{'='*60}")
+ 
+@@ -108,8 +110,8 @@ def main():
+         if not code.strip():
+             clear_screen()
+             print_header()
+-            print("⚠️  Nenhum código foi digitado.\n")
+-            input("Pressione ENTER para continuar...")
++            print(f"⚠️  {msg('no_code', language)}\n")
++            input(msg('menu_prompt', language))
+             clear_screen()
+             continue
+         
