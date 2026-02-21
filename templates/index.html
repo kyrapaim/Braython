@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Braython - Compilador Português/Espanhol → Python</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 1200px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+            max-height: 900px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .language-select {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .language-select label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .language-select input[type="radio"] {
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .language-select span {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-execute {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-execute:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-clear {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-translate {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-translate:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .code-section {
+            border-right: 1px solid #e9ecef;
+        }
+
+        .section-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: none;
+            background: white;
+            color: #2c3e50;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #output {
+            background: #2c3e50;
+            color: #2ecc71;
+            border: 1px solid #34495e;
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .message.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef5350;
+            display: block;
+        }
+
+        .message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #66bb6a;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            padding: 10px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+
+            .code-section {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .language-select,
+            .buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Braython</h1>
+            <p>Compilador Português/Espanhol → Python</p>
+        </div>
+
+        <div class="controls">
+            <div class="language-select">
+                <label>Idioma:</label>
+                <span>
+                    <input type="radio" id="lang-pt" name="language" value="pt" checked>
+                    <label for="lang-pt" style="margin: 0;">Português</label>
+                </span>
+                <span>
+                    <input type="radio" id="lang-es" name="language" value="es">
+                    <label for="lang-es" style="margin: 0;">Español</label>
+                </span>
+            </div>
+            <div class="buttons">
+                <button class="btn-execute" onclick="executeCode()">▶ Executar</button>
+                <button class="btn-translate" onclick="translateOnly()">Visualizar Tradução</button>
+                <button class="btn-clear" onclick="clearAll()">Limpar</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section code-section">
+                <div class="section-title">Seu Código:</div>
+                <textarea id="code" placeholder="Digite seu código em Português ou Espanhol...&#10;&#10;Exemplo:&#10;escreva(&quot;Olá, Mundo!&quot;)&#10;deixe x = 10&#10;escreva(x + 5)"></textarea>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Saída:</div>
+                <div class="message" id="message"></div>
+                <div class="loading" id="loading">Compilando...</div>
+                <textarea id="output" readonly placeholder="Resultado aqui..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const codeInput = document.getElementById('code');
+        const outputDisplay = document.getElementById('output');
+        const messageBox = document.getElementById('message');
+        const loadingBox = document.getElementById('loading');
+
+        function getLanguage() {
+            return document.querySelector('input[name="language"]:checked').value;
+        }
+
+        function showMessage(text, type) {
+            messageBox.textContent = text;
+            messageBox.className = `message ${type}`;
+            setTimeout(() => {
+                messageBox.className = 'message';
+            }, 5000);
+        }
+
+        function executeCode() {
+            const code = codeInput.value;
+            if (!code.trim()) {
+                showMessage('Por favor, digite algum código!', 'error');
+                return;
+            }
+
+            loadingBox.classList.add('active');
+            outputDisplay.value = '';
+
+            fetch('/compile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    code: code,
+                    language: getLanguage()
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingBox.classList.remove('active');
+                if (data.error) {
+                    showMessage(data.error, 'error');
+                    outputDisplay.value = '';
+                } else {
+                    outputDisplay.value = data.output;
+                    showMessage('Código executado com sucesso!', 'success');
+                }
+            })
+            .catch(error => {
+                loadingBox.classList.remove('active');
+                showMessage('Erro ao conectar com o servidor: ' + error, 'error');
+            });
+        }
+
+        function translateOnly() {
+            const code = codeInput.value;
+            if (!code.trim()) {
+                showMessage('Por favor, digite algum código!', 'error');
+                return;
+            }
+
+            loadingBox.classList.add('active');
+            outputDisplay.value = '';
+
+            fetch('/translate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    code: code,
+                    language: getLanguage()
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingBox.classList.remove('active');
+                if (data.error) {
+                    showMessage('Erro na tradução: ' + data.error, 'error');
+                    outputDisplay.value = '';
+                } else {
+                    outputDisplay.value = data.translated;
+                    showMessage('Tradução gerada com sucesso!', 'success');
+                }
+            })
+            .catch(error => {
+                loadingBox.classList.remove('active');
+                showMessage('Erro ao conectar com o servidor: ' + error, 'error');
+            });
+        }
+
+        function clearAll() {
+            codeInput.value = '';
+            outputDisplay.value = '';
+            messageBox.className = 'message';
+            codeInput.focus();
+        }
+
+        // Execute code with Ctrl+Enter
+        codeInput.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                executeCode();
+            }
+        });
+
+        // Focus on code input on load
+        window.addEventListener('load', () => {
+            codeInput.focus();
+        });
+    </script>
+</body>
+</html>
