@@ -1,0 +1,386 @@
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+from compiler import Compiler
+from io import StringIO
+from contextlib import redirect_stdout, redirect_stderr
+import traceback
+
+
+class App:
+    def __init__(self, root: tk.Tk):
+        self.root = root
+        self.root.title("Braython")
+        self.root.geometry("560x390")
+        self.root.resizable(False, False)
+
+        self.compiler = Compiler()
+        self.user_name = tk.StringVar()
+        self.project_name = tk.StringVar()
+        self.preferred_language = tk.StringVar(value="Português")
+
+        self.graphics_window = None
+        self.code_editor = None
+        self.output_view = None
+        self.status_var = tk.StringVar(value="")
+
+        self.configure_styles()
+
+        self.main_container = ttk.Frame(root, style="Cute.TFrame", padding=20)
+        self.main_container.pack(expand=True, fill="both")
+
+        self.show_language_screen()
+
+    def configure_styles(self):
+        style = ttk.Style()
+        style.theme_use("clam")
+
+        self.root.configure(bg="#FFE9F3")
+
+        style.configure("Cute.TFrame", background="#FFE9F3")
+        style.configure("Card.TFrame", background="#FFF7FB")
+        style.configure("Title.TLabel", background="#FFF7FB", foreground="#D43F8D", font=("Comic Sans MS", 22, "bold"))
+        style.configure("Section.TLabel", background="#FFF7FB", foreground="#6C2A68", font=("Segoe UI", 11, "bold"))
+        style.configure("Body.TLabel", background="#FFF7FB", foreground="#5B415B", font=("Segoe UI", 10))
+        style.configure("Cute.TButton", font=("Segoe UI", 10, "bold"), padding=8)
+        style.map("Cute.TButton", background=[("active", "#FFC7E3")])
+        style.configure("Cute.TCombobox", fieldbackground="#FFFFFF")
+
+    def clear_main_container(self):
+        for child in self.main_container.winfo_children():
+            child.destroy()
+
+    def show_language_screen(self):
+        self.clear_main_container()
+
+        card = ttk.Frame(self.main_container, style="Card.TFrame", padding=24)
+        card.pack(expand=True, fill="both")
+
+        ttk.Label(card, text="Choose language / Escolha idioma / Elige idioma", style="Title.TLabel").pack(pady=(8, 22))
+
+        buttons = ttk.Frame(card, style="Card.TFrame")
+        buttons.pack()
+
+        ttk.Button(
+            buttons,
+            text="Português",
+            style="Cute.TButton",
+            command=lambda: self.select_language("Português")
+        ).pack(side="left", padx=10, ipadx=12, ipady=10)
+
+        ttk.Button(
+            buttons,
+            text="Español",
+            style="Cute.TButton",
+            command=lambda: self.select_language("Español")
+        ).pack(side="left", padx=10, ipadx=12, ipady=10)
+
+    def select_language(self, language):
+        self.preferred_language.set(language)
+        self.show_main_menu()
+
+    def show_main_menu(self):
+        self.clear_main_container()
+        texts = self.get_texts()
+
+        self.root.title(texts["main_menu_title"])
+
+        card = ttk.Frame(self.main_container, style="Card.TFrame", padding=24)
+        card.pack(expand=True, fill="both")
+
+        ttk.Label(card, text=texts["main_menu_title"], style="Title.TLabel").pack(pady=(0, 16))
+
+        form = ttk.Frame(card, style="Card.TFrame")
+        form.pack(fill="x", pady=(0, 16))
+
+        ttk.Label(form, text=texts["name_label"], style="Section.TLabel").grid(row=0, column=0, sticky="w")
+        self.name_entry = ttk.Entry(form, textvariable=self.user_name, font=("Segoe UI", 11))
+        self.name_entry.grid(row=1, column=0, sticky="ew", pady=(4, 12))
+
+        ttk.Label(form, text=texts["project_label"], style="Section.TLabel").grid(row=2, column=0, sticky="w")
+        self.project_entry = ttk.Entry(form, textvariable=self.project_name, font=("Segoe UI", 11))
+        self.project_entry.grid(row=3, column=0, sticky="ew", pady=(4, 0))
+
+        form.columnconfigure(0, weight=1)
+
+        buttons = ttk.Frame(card, style="Card.TFrame")
+        buttons.pack(fill="x")
+
+        ttk.Button(
+            buttons,
+            text=texts["open_ide"],
+            style="Cute.TButton",
+            command=self.open_graphics_window
+        ).pack(side="left", ipadx=10, ipady=8)
+
+        ttk.Button(
+            buttons,
+            text=texts["change_language"],
+            style="Cute.TButton",
+            command=self.show_language_screen
+        ).pack(side="left", padx=(10, 0), ipadx=10, ipady=8)
+
+        ttk.Button(
+            buttons,
+            text=texts["exit"],
+            style="Cute.TButton",
+            command=self.root.destroy
+        ).pack(side="right", ipadx=10, ipady=8)
+
+        self.name_entry.focus_set()
+
+    def get_language_code(self):
+        return "es" if self.preferred_language.get().strip() == "Español" else "pt"
+
+    def get_texts(self):
+        if self.preferred_language.get().strip() == "Español":
+            return {
+                "main_menu_title": "Menú Principal",
+                "name_label": "Tu nombre",
+                "project_label": "Nombre del proyecto",
+                "open_ide": "Abrir IDE",
+                "change_language": "Cambiar idioma",
+                "exit": "Salir",
+                "window_title": "IDE Gráfico",
+                "greeting": "Bienvenido/a",
+                "code_label": "Editor de código",
+                "output_label": "Salida",
+                "run": "Ejecutar",
+                "translate": "Ver traducción a Python",
+                "clear_code": "Limpiar código",
+                "clear_output": "Limpiar salida",
+                "close": "Cerrar Ventana",
+                "empty_code": "Escribe código antes de ejecutar.",
+                "empty_title": "Código vacío",
+                "status_ready": "Listo",
+                "status_ran": "Código ejecutado",
+                "status_translated": "Traducción generada",
+                "status_cleared": "Editor limpiado",
+                "status_output_cleared": "Salida limpiada",
+                "translation_header": "Traducción Python",
+                "error_header": "Error",
+                "missing_info_title": "Falta información",
+                "missing_name": "Ingresa tu nombre antes de continuar.",
+                "missing_project": "Ingresa el nombre del proyecto antes de continuar.",
+            }
+        return {
+            "main_menu_title": "Menu Principal",
+            "name_label": "Seu nome",
+            "project_label": "Nome do projeto",
+            "open_ide": "Abrir IDE",
+            "change_language": "Trocar idioma",
+            "exit": "Sair",
+            "window_title": "IDE Gráfico",
+            "greeting": "Bem-vindo(a)",
+            "code_label": "Editor de código",
+            "output_label": "Saída",
+            "run": "Executar",
+            "translate": "Ver tradução para Python",
+            "clear_code": "Limpar código",
+            "clear_output": "Limpar saída",
+            "close": "Fechar Janela",
+            "empty_code": "Digite código antes de executar.",
+            "empty_title": "Código vazio",
+            "status_ready": "Pronto",
+            "status_ran": "Código executado",
+            "status_translated": "Tradução gerada",
+            "status_cleared": "Editor limpo",
+            "status_output_cleared": "Saída limpa",
+            "translation_header": "Tradução Python",
+            "error_header": "Erro",
+            "missing_info_title": "Informação faltando",
+            "missing_name": "Digite seu nome antes de continuar.",
+            "missing_project": "Digite o nome do projeto antes de continuar.",
+        }
+
+    def set_output(self, text):
+        self.output_view.config(state="normal")
+        self.output_view.delete("1.0", tk.END)
+        self.output_view.insert("1.0", text)
+        self.output_view.config(state="disabled")
+
+    def open_graphics_window(self):
+        name = self.user_name.get().strip()
+        project = self.project_name.get().strip()
+        texts = self.get_texts()
+
+        if not name:
+            messagebox.showwarning(texts["missing_info_title"], texts["missing_name"])
+            self.name_entry.focus_set()
+            return
+
+        if not project:
+            messagebox.showwarning(texts["missing_info_title"], texts["missing_project"])
+            self.project_entry.focus_set()
+            return
+
+        if self.graphics_window and self.graphics_window.winfo_exists():
+            self.graphics_window.lift()
+            self.graphics_window.focus_force()
+            return
+
+        self.graphics_window = tk.Toplevel(self.root)
+        self.graphics_window.configure(bg="#FFF0F7")
+        self.graphics_window.title(f"{texts['window_title']} - {project}")
+        self.graphics_window.geometry("1020x670")
+        self.graphics_window.minsize(760, 500)
+
+        main = ttk.Frame(self.graphics_window, style="Cute.TFrame", padding=12)
+        main.pack(expand=True, fill="both")
+
+        top_card = ttk.Frame(main, style="Card.TFrame", padding=10)
+        top_card.pack(fill="x", pady=(0, 8))
+
+        header = ttk.Label(
+            top_card,
+            text=f"{texts['greeting']}, {name} • {project} • {self.preferred_language.get().strip()}",
+            background="#FFF7FB",
+            foreground="#6C2A68",
+            font=("Comic Sans MS", 11, "bold")
+        )
+        header.pack(anchor="w")
+
+        controls = ttk.Frame(main, style="Cute.TFrame")
+        controls.pack(fill="x", pady=(0, 10))
+
+        ttk.Button(controls, text=texts["run"], command=self.run_current_code).pack(side="left")
+        ttk.Button(controls, text=texts["translate"], command=self.show_translation).pack(side="left", padx=(8, 0))
+        ttk.Button(controls, text=texts["clear_code"], command=self.clear_code).pack(side="left", padx=(8, 0))
+        ttk.Button(controls, text=texts["clear_output"], command=self.clear_output).pack(side="left", padx=(8, 0))
+        ttk.Button(controls, text=texts["close"], command=self.close_graphics_window).pack(side="right")
+
+        panes = ttk.Panedwindow(main, orient=tk.HORIZONTAL)
+        panes.pack(expand=True, fill="both")
+
+        editor_frame = ttk.Frame(panes, style="Card.TFrame", padding=8)
+        output_frame = ttk.Frame(panes, style="Card.TFrame", padding=8)
+        panes.add(editor_frame, weight=3)
+        panes.add(output_frame, weight=2)
+
+        ttk.Label(editor_frame, text=texts["code_label"], style="Section.TLabel").pack(anchor="w")
+
+        editor_scroll_y = ttk.Scrollbar(editor_frame, orient="vertical")
+        editor_scroll_x = ttk.Scrollbar(editor_frame, orient="horizontal")
+        self.code_editor = tk.Text(
+            editor_frame,
+            undo=True,
+            wrap="none",
+            yscrollcommand=editor_scroll_y.set,
+            xscrollcommand=editor_scroll_x.set,
+            bg="#FFFDF2",
+            fg="#3D2C3D",
+            insertbackground="#D43F8D",
+            relief="flat",
+            borderwidth=0,
+            font=("Consolas", 11),
+            tabs=(36,)
+        )
+        editor_scroll_y.config(command=self.code_editor.yview)
+        editor_scroll_x.config(command=self.code_editor.xview)
+        editor_scroll_y.pack(side="right", fill="y")
+        editor_scroll_x.pack(side="bottom", fill="x")
+        self.code_editor.pack(expand=True, fill="both")
+
+        ttk.Label(output_frame, text=texts["output_label"], style="Section.TLabel").pack(anchor="w")
+
+        output_scroll_y = ttk.Scrollbar(output_frame, orient="vertical")
+        self.output_view = tk.Text(
+            output_frame,
+            wrap="word",
+            yscrollcommand=output_scroll_y.set,
+            bg="#F3FDFF",
+            fg="#234055",
+            relief="flat",
+            borderwidth=0,
+            font=("Consolas", 10),
+            state="disabled"
+        )
+        output_scroll_y.config(command=self.output_view.yview)
+        output_scroll_y.pack(side="right", fill="y")
+        self.output_view.pack(expand=True, fill="both")
+
+        self.status_var.set(texts["status_ready"])
+        ttk.Label(main, textvariable=self.status_var, style="Body.TLabel").pack(anchor="w", pady=(8, 0))
+
+        self.graphics_window.bind("<Control-Return>", lambda _event: self.run_current_code())
+
+        self.graphics_window.protocol("WM_DELETE_WINDOW", self.close_graphics_window)
+        self.code_editor.focus_set()
+
+    def current_source_code(self):
+        return self.code_editor.get("1.0", tk.END).rstrip()
+
+    def run_current_code(self):
+        texts = self.get_texts()
+        code = self.current_source_code()
+        if not code.strip():
+            messagebox.showwarning(texts["empty_title"], texts["empty_code"])
+            return
+
+        language = self.get_language_code()
+        stdout_buffer = StringIO()
+        stderr_buffer = StringIO()
+
+        try:
+            python_code = self.compiler.compile(code, language)
+            runtime_globals = {}
+            with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+                exec(python_code, runtime_globals)
+
+            output_text = stdout_buffer.getvalue()
+            error_text = stderr_buffer.getvalue()
+            final_output = output_text if output_text else ""
+            if error_text:
+                final_output += error_text
+            if not final_output.strip():
+                final_output = "(sem saída)" if language == "pt" else "(sin salida)"
+            self.set_output(final_output)
+            self.status_var.set(texts["status_ran"])
+        except Exception as exc:
+            translated_message = None
+            if hasattr(self.compiler, "last_translated") and self.compiler.last_translated:
+                translated_message = self.compiler.last_translated
+            error_details = traceback.format_exc()
+            if translated_message:
+                display = f"{texts['error_header']}: {translated_message}\n\n{error_details}"
+            else:
+                display = f"{texts['error_header']}: {exc}\n\n{error_details}"
+            self.set_output(display)
+            self.status_var.set(texts["error_header"])
+
+    def show_translation(self):
+        texts = self.get_texts()
+        code = self.current_source_code()
+        if not code.strip():
+            messagebox.showwarning(texts["empty_title"], texts["empty_code"])
+            return
+
+        language = self.get_language_code()
+        try:
+            translated = self.compiler.compile(code, language)
+            self.set_output(f"{texts['translation_header']}:\n\n{translated}")
+            self.status_var.set(texts["status_translated"])
+        except Exception as exc:
+            self.set_output(f"{texts['error_header']}: {exc}")
+            self.status_var.set(texts["error_header"])
+
+    def clear_code(self):
+        texts = self.get_texts()
+        self.code_editor.delete("1.0", tk.END)
+        self.status_var.set(texts["status_cleared"])
+
+    def clear_output(self):
+        texts = self.get_texts()
+        self.set_output("")
+        self.status_var.set(texts["status_output_cleared"])
+
+    def close_graphics_window(self):
+        if self.graphics_window and self.graphics_window.winfo_exists():
+            self.graphics_window.destroy()
+            self.graphics_window = None
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    App(root)
+    root.mainloop()
