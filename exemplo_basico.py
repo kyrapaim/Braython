@@ -17,8 +17,7 @@ senao:
     escreva("z é maior ou igual a y")
 '''
 
-# Compile and display tokens
+# Compile and run the code
 compiler = Compiler()
-print("=== Compilando código em Português ===")
-result = compiler.compile(codigo_portugues, 'pt')
-print(result)
+print("=== Executando código em Português ===")
+compiler.compile_and_run(codigo_portugues, 'pt')
