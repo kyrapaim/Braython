@@ -66,11 +66,14 @@ class Lexer:
                 'função': TipoToken.FUNCAO,
                 'funcao': TipoToken.FUNCAO,
                 'retorna': TipoToken.RETORNA,
+                'retorne': TipoToken.RETORNA,
                 'verdadeiro': TipoToken.VERDADEIRO,
                 'falso': TipoToken.FALSO,
                 'nulo': TipoToken.NULO,
                 'escreva': TipoToken.ESCREVA,
+                'escreve': TipoToken.ESCREVA,
                 'deixe': TipoToken.DEIXE,
+                'deixa': TipoToken.DEIXE,
             },
             'es': {
                 'si': TipoToken.SE,
@@ -80,11 +83,14 @@ class Lexer:
                 'función': TipoToken.FUNCAO,
                 'funcion': TipoToken.FUNCAO,
                 'retorna': TipoToken.RETORNA,
+                'retorne': TipoToken.RETORNA,
                 'verdadero': TipoToken.VERDADEIRO,
                 'falso': TipoToken.FALSO,
                 'nulo': TipoToken.NULO,
                 'escribe': TipoToken.ESCREVA,
+                'escriba': TipoToken.ESCREVA,
                 'deja': TipoToken.DEIXE,
+                'deje': TipoToken.DEIXE,
             }
         }
     

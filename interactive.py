@@ -46,15 +46,78 @@ def get_code(language_name):
     """Get code from user"""
     print(f"\n{'='*60}")
     print(f"  Digite seu código em {language_name}")
-    print(f"  (termine com uma linha vazia)\n")
+    print(f"  (termine digitando 010 em uma nova linha)")
+    print("  Comandos: :show | :edit N <conteudo> | :insert N <conteudo> | :delete N | :clear")
+    print("  Ex.: :edit 2 print(\"oi\") | :insert 1 x = 10\n")
     print(f"{'='*60}\n")
     
     lines = []
     while True:
         try:
-            line = input()
-            if not line:
+            line = input(f"[{len(lines) + 1}] ")
+            if line.strip() == '010':
                 break
+
+            stripped = line.strip()
+            if stripped.startswith(':'):
+                parts = stripped.split(' ', 2)
+                command = parts[0].lower()
+
+                if command == ':show':
+                    if not lines:
+                        print("(código vazio)")
+                    else:
+                        print("\nCódigo atual:")
+                        for index, content in enumerate(lines, start=1):
+                            print(f"{index:>3}: {content}")
+                        print()
+                    continue
+
+                if command == ':clear':
+                    lines.clear()
+                    print("Código limpo.")
+                    continue
+
+                if command in (':edit', ':insert', ':delete'):
+                    if len(parts) < 2:
+                        print("Uso inválido. Exemplo: :edit 3 print(\"olá\")")
+                        continue
+
+                    try:
+                        target = int(parts[1])
+                    except ValueError:
+                        print("Número da linha inválido.")
+                        continue
+
+                    if command == ':delete':
+                        if target < 1 or target > len(lines):
+                            print("Linha fora do intervalo.")
+                            continue
+                        lines.pop(target - 1)
+                        print(f"Linha {target} removida.")
+                        continue
+
+                    new_text = parts[2] if len(parts) > 2 else ''
+
+                    if command == ':edit':
+                        if target < 1 or target > len(lines):
+                            print("Linha fora do intervalo.")
+                            continue
+                        lines[target - 1] = new_text
+                        print(f"Linha {target} atualizada.")
+                        continue
+
+                    if command == ':insert':
+                        if target < 1 or target > len(lines) + 1:
+                            print("Linha fora do intervalo para inserção.")
+                            continue
+                        lines.insert(target - 1, new_text)
+                        print(f"Linha inserida na posição {target}.")
+                        continue
+
+                print("Comando desconhecido.")
+                continue
+
             lines.append(line)
         except EOFError:
             break
