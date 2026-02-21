@@ -38,8 +38,8 @@ class App:
 
         self.configure_styles()
 
-        self.main_container = ttk.Frame(root, style="Cute.TFrame", padding=20)
-        self.main_container.pack(expand=True, fill="both")
+        self.main_container = ttk.Frame(root, style="Cute.TFrame", padding=20, relief="raised", borderwidth=8)
+        self.main_container.pack(expand=True, fill="both", padx=12, pady=12)
         self.root.protocol("WM_DELETE_WINDOW", self.handle_main_window_close)
 
         self.show_language_screen()
@@ -56,9 +56,9 @@ class App:
 
         self.root.configure(bg="#EFE3FF")
 
-        style.configure("LangRoot.TFrame", background="#EFE3FF")
-        style.configure("LangCard.TFrame", background="#F5ECFF")
-        style.configure("LangTitle.TLabel", background="#F5ECFF", foreground="#6A4AA0", font=("Georgia", 21, "bold"))
+        style.configure("LangRoot.TFrame", background="#FFE9F3")
+        style.configure("LangCard.TFrame", background="#FFF7FB")
+        style.configure("LangTitle.TLabel", background="#FFF7FB", foreground="#B79CFF", font=("Georgia", 21, "bold"))
         style.configure("Lang.TButton", font=("Georgia", 11, "bold"), padding=10, background="#FFFFFF", foreground="#6A4AA0")
         style.map("Lang.TButton", background=[("active", "#FFD9EC")])
 
@@ -69,10 +69,10 @@ class App:
         style.configure("Body.TLabel", background="#FFF7FB", foreground="#5B415B", font=("Georgia", 10))
         style.configure("Cute.TButton", font=("Georgia", 10, "bold"), padding=8)
         style.map("Cute.TButton", background=[("active", "#FFC7E3")])
-        style.configure("MenuAction.TButton", font=("Georgia", 10, "bold"), padding=8, background="#D9F7C8", foreground="#2F5D2F")
-        style.map("MenuAction.TButton", background=[("active", "#C5EEAF")])
-        style.configure("AccessProjects.TButton", font=("Georgia", 9, "bold"), padding=8, background="#D9F7C8", foreground="#2F5D2F")
-        style.map("AccessProjects.TButton", background=[("active", "#C5EEAF")])
+        style.configure("MenuAction.TButton", font=("Georgia", 10, "bold"), padding=8, background="#C9B6FF", foreground="#6A4AA0")
+        style.map("MenuAction.TButton", background=[("active", "#DCC9FF")])
+        style.configure("AccessProjects.TButton", font=("Georgia", 9, "bold"), padding=8, background="#C9B6FF", foreground="#6A4AA0")
+        style.map("AccessProjects.TButton", background=[("active", "#DCC9FF")])
         style.configure("Cute.TCombobox", fieldbackground="#FFFFFF")
 
     def get_ide_theme(self):
@@ -233,30 +233,58 @@ class App:
 
     def show_language_screen(self):
         self.clear_main_container()
-        self.root.configure(bg="#EFE3FF")
+        self.root.configure(bg="#FF99CC")  # Darker pink outer border
         self.main_container.configure(style="LangRoot.TFrame")
 
         card = ttk.Frame(self.main_container, style="LangCard.TFrame", padding=24)
         card.pack(expand=True, fill="both")
 
-        ttk.Label(card, text="Choose a language", style="LangTitle.TLabel").pack(pady=(8, 22))
+        ttk.Label(card, text="✨ Code in your language ✨", style="Title.TLabel").pack(pady=(8, 22))
 
         buttons = ttk.Frame(card, style="LangCard.TFrame")
         buttons.pack()
 
-        ttk.Button(
-            buttons,
-            text="Português",
-            style="Lang.TButton",
+        # Portuguese/Brazil button - Pink with border
+        pt_frame = tk.Frame(buttons, bg="#FF99CC", padx=3, pady=3)
+        pt_frame.pack(pady=12)
+        pt_btn = tk.Button(
+            pt_frame,
+            text="🇧🇷 Português",
+            font=("Georgia", 12, "bold"),
+            bg="#FFB6E6",
+            fg="#6A4AA0",
+            width=20,
+            padx=20,
+            pady=12,
+            relief="flat",
+            bd=0,
+            cursor="hand2",
             command=lambda: self.select_language("Português")
-        ).pack(side="left", padx=10, ipadx=12, ipady=10)
+        )
+        pt_btn.pack()
+        pt_btn.bind("<Enter>", lambda e: pt_btn.config(bg="#FFC7E3"))
+        pt_btn.bind("<Leave>", lambda e: pt_btn.config(bg="#FFB6E6"))
 
-        ttk.Button(
-            buttons,
-            text="Español",
-            style="Lang.TButton",
+        # Spanish button - Purple with border
+        es_frame = tk.Frame(buttons, bg="#FF99CC", padx=3, pady=3)
+        es_frame.pack(pady=12)
+        es_btn = tk.Button(
+            es_frame,
+            text="🇪🇸 Español",
+            font=("Georgia", 12, "bold"),
+            bg="#C9B6FF",
+            fg="#6A4AA0",
+            width=20,
+            padx=20,
+            pady=12,
+            relief="flat",
+            bd=0,
+            cursor="hand2",
             command=lambda: self.select_language("Español")
-        ).pack(side="left", padx=10, ipadx=12, ipady=10)
+        )
+        es_btn.pack()
+        es_btn.bind("<Enter>", lambda e: es_btn.config(bg="#DCC9FF"))
+        es_btn.bind("<Leave>", lambda e: es_btn.config(bg="#C9B6FF"))
 
     def select_language(self, language):
         self.preferred_language.set(language)
@@ -265,7 +293,7 @@ class App:
     def show_main_menu(self):
         self.clear_main_container()
         texts = self.get_texts()
-        self.root.configure(bg="#FFE9F3")
+        self.root.configure(bg="#FF99CC")
         self.main_container.configure(style="Cute.TFrame")
 
         self.root.title(texts["main_menu_title"])
@@ -273,18 +301,22 @@ class App:
         card = ttk.Frame(self.main_container, style="Card.TFrame", padding=24)
         card.pack(expand=True, fill="both")
 
-        ttk.Label(card, text=texts["main_menu_title"], style="Title.TLabel").pack(pady=(0, 16))
+        ttk.Label(card, text="✨ " + texts["main_menu_title"] + " ✨", style="Title.TLabel").pack(pady=(0, 16))
 
         form = ttk.Frame(card, style="Card.TFrame")
         form.pack(fill="x", pady=(0, 16))
 
         ttk.Label(form, text=texts["name_label"], style="Section.TLabel").grid(row=0, column=0, sticky="w")
-        self.name_entry = ttk.Entry(form, textvariable=self.user_name, font=("Georgia", 11))
-        self.name_entry.grid(row=1, column=0, sticky="ew", pady=(4, 12))
+        name_frame = tk.Frame(form, bg="#FF99CC", padx=2, pady=2)
+        name_frame.grid(row=1, column=0, sticky="ew", pady=(4, 12))
+        self.name_entry = tk.Entry(name_frame, textvariable=self.user_name, font=("Georgia", 11), bg="#FFF7FB", fg="#5B415B", relief="flat", bd=0)
+        self.name_entry.pack(fill="x", padx=2, pady=2)
 
         ttk.Label(form, text=texts["project_label"], style="Section.TLabel").grid(row=2, column=0, sticky="w")
-        self.project_entry = ttk.Entry(form, textvariable=self.project_name, font=("Georgia", 11))
-        self.project_entry.grid(row=3, column=0, sticky="ew", pady=(4, 0))
+        project_frame = tk.Frame(form, bg="#FF99CC", padx=2, pady=2)
+        project_frame.grid(row=3, column=0, sticky="ew", pady=(4, 0))
+        self.project_entry = tk.Entry(project_frame, textvariable=self.project_name, font=("Georgia", 11), bg="#FFF7FB", fg="#5B415B", relief="flat", bd=0)
+        self.project_entry.pack(fill="x", padx=2, pady=2)
 
         form.columnconfigure(0, weight=1)
 
@@ -401,7 +433,7 @@ class App:
                 "menu_view": "Ver",
                 "export_py": "Exportar como .py",
                 "increase_font": "Aumentar tamaño de fuente",
-                "decrease_font": "Disminuir tamaño de fuente",
+                "decrease_font": "Disminuir tamaño de fonte",
             }
         return {
             "main_menu_title": "Menu Principal",
@@ -485,24 +517,28 @@ class App:
 
         theme = self.get_ide_theme()
         style = ttk.Style()
-        style.configure("IdeRoot.TFrame", background=theme["main_bg"])
-        style.configure("IdeCard.TFrame", background=theme["card_bg"])
-        style.configure("IdeHeader.TLabel", background=theme["header_bg"], foreground=theme["header_fg"], font=("Brush Script MT", 18, "bold"))
-        style.configure("IdeSection.TLabel", background=theme["card_bg"], foreground=theme["section_fg"], font=("Georgia", 11, "bold"))
-        style.configure("IdeBody.TLabel", background=theme["main_bg"], foreground=theme["body_fg"], font=("Georgia", 10))
-        style.configure("Ide.TButton", font=("Georgia", 10, "bold"), padding=8, background=theme["button_bg"])
-        style.map("Ide.TButton", background=[("active", theme["button_hover"])])
-        style.configure("IdeAccessProjects.TButton", font=("Georgia", 9, "bold"), padding=8, background=theme["button_bg"])
-        style.map("IdeAccessProjects.TButton", background=[("active", theme["button_hover"])])
+        style.configure("IdeRoot.TFrame", background="#FFE9F3")
+        style.configure("IdeCard.TFrame", background="#FFF7FB")
+        style.configure("IdeHeader.TLabel", background="#FFF7FB", foreground="#B79CFF", font=("Georgia", 18, "bold"))
+        style.configure("IdeSection.TLabel", background="#E8DAFF", foreground="#6C2A68", font=("Georgia", 11, "bold"))
+        style.configure("IdeBody.TLabel", background="#FFE9F3", foreground="#5B415B", font=("Georgia", 10))
+        style.configure("Ide.TButton", font=("Georgia", 12, "bold"), padding=10, background="#DCC9FF", foreground="#6A4AA0")
+        style.map("Ide.TButton", background=[("active", "#E8DAFF")])
+        style.configure("IdeAccessProjects.TButton", font=("Georgia", 9, "bold"), padding=8, background="#C9B6FF", foreground="#6A4AA0")
+        style.map("IdeAccessProjects.TButton", background=[("active", "#DCC9FF")])
 
         self.graphics_window = tk.Toplevel(self.root)
-        self.graphics_window.configure(bg=theme["window_bg"])
+        self.graphics_window.configure(bg="#FF99CC")
         self.graphics_window.title(f"{texts['window_title']} - {project}")
         self.graphics_window.geometry("1020x670")
         self.graphics_window.minsize(760, 500)
         self.root.withdraw()
 
-        main = ttk.Frame(self.graphics_window, style="IdeRoot.TFrame", padding=12)
+        # Outer frame with dark pink border
+        outer_frame = tk.Frame(self.graphics_window, bg="#FF99CC", padx=8, pady=8)
+        outer_frame.pack(expand=True, fill="both")
+
+        main = ttk.Frame(outer_frame, style="IdeRoot.TFrame", padding=12)
         main.pack(expand=True, fill="both")
 
         top_card = ttk.Frame(main, style="IdeCard.TFrame", padding=10)
@@ -542,20 +578,27 @@ class App:
 
         # Quick action buttons (just Run and Translate)
         quick_buttons = ttk.Frame(main, style="IdeRoot.TFrame")
-        quick_buttons.pack(fill="x", pady=(0, 10))
+        quick_buttons.pack(fill="x", pady=(0, 15))
 
-        ttk.Button(quick_buttons, style="Ide.TButton", text=texts["run"], command=self.run_current_code).pack(side="left")
-        ttk.Button(quick_buttons, style="Ide.TButton", text=texts["translate"], command=self.show_translation).pack(side="left", padx=(8, 0))
+        ttk.Button(quick_buttons, style="Ide.TButton", text=texts["run"], command=self.run_current_code).pack(side="left", padx=(0, 8), ipadx=20, ipady=12)
+        ttk.Button(quick_buttons, style="Ide.TButton", text=texts["translate"], command=self.show_translation).pack(side="left", ipadx=20, ipady=12)
 
         panes = ttk.Panedwindow(main, orient=tk.HORIZONTAL)
         panes.pack(expand=True, fill="both")
 
-        editor_frame = ttk.Frame(panes, style="IdeCard.TFrame", padding=8)
-        output_frame = ttk.Frame(panes, style="IdeCard.TFrame", padding=8)
-        panes.add(editor_frame, weight=3)
-        panes.add(output_frame, weight=2)
+        # Editor frame with pink border
+        editor_border = tk.Frame(panes, bg="#FF99CC", padx=4, pady=4)
+        editor_frame = ttk.Frame(editor_border, style="IdeCard.TFrame", padding=8)
+        editor_frame.pack(expand=True, fill="both")
+        panes.add(editor_border, weight=3)
 
-        ttk.Label(editor_frame, text=texts["code_label"], style="IdeSection.TLabel").pack(anchor="w")
+        # Output frame with pink border
+        output_border = tk.Frame(panes, bg="#FF99CC", padx=4, pady=4)
+        output_frame = ttk.Frame(output_border, style="IdeCard.TFrame", padding=8)
+        output_frame.pack(expand=True, fill="both")
+        panes.add(output_border, weight=2)
+
+        ttk.Label(editor_frame, text=texts["code_label"], style="IdeSection.TLabel").pack(anchor="w", padx=4, pady=4, ipady=4)
 
         # Create a frame for editor with line numbers
         editor_container = ttk.Frame(editor_frame)
@@ -568,7 +611,7 @@ class App:
             padx=3,
             takefocus=0,
             border=0,
-            background=theme["editor_bg"],
+            background="#FFF7FB",
             foreground="#888888",
             font=("Georgia", self.current_font_size),
             state="disabled"
@@ -584,9 +627,9 @@ class App:
             wrap="none",
             yscrollcommand=self.on_editor_scroll,
             xscrollcommand=editor_scroll_x.set,
-            bg=theme["editor_bg"],
-            fg=theme["editor_fg"],
-            insertbackground=theme["cursor"],
+            bg="#FFF7FB",
+            fg="#5B415B",
+            insertbackground="#B79CFF",
             relief="flat",
             borderwidth=0,
             font=("Georgia", self.current_font_size),
@@ -604,15 +647,15 @@ class App:
         # Update line numbers on start
         self.update_line_numbers()
 
-        ttk.Label(output_frame, text=texts["output_label"], style="IdeSection.TLabel").pack(anchor="w")
+        ttk.Label(output_frame, text=texts["output_label"], style="IdeSection.TLabel").pack(anchor="w", padx=4, pady=4, ipady=4)
 
         output_scroll_y = ttk.Scrollbar(output_frame, orient="vertical")
         self.output_view = tk.Text(
             output_frame,
             wrap="word",
             yscrollcommand=output_scroll_y.set,
-            bg=theme["output_bg"],
-            fg=theme["output_fg"],
+            bg="#FFF7FB",
+            fg="#5B415B",
             relief="flat",
             borderwidth=0,
             font=("Georgia", 10),
