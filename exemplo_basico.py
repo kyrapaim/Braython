@@ -1,17 +1,27 @@
 # Exemplo básico de uso do compilador Braython
 
 # Impressão de texto
-print("Olá, Mundo!")
+escreva("Olá, Mundo!")
 
 # Atribuição de variável
-x = 10
+deixe x = 10
 
 # Operações aritméticas
-y = x + 5
-z = x * 2
+deixe y = x + 5
+deixe z = x * 2
 
 # Condicional básica
-if y > z:
-    print("y é maior que z")
-else:
-    print("z é maior ou igual a y")
+se y > z:
+    escreva("y é maior que z")
+senao:
+    escreva("z é maior ou igual a y")
+
+# Estrutura de repetição
+para i em alcance(1, 4):
+    escreva(i)
+
+# Função
+funcao saudacao(nome):
+    escreva("Olá, " + nome)
+
+saudacao("Braython")
