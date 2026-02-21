@@ -2,9 +2,13 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from compiler import Compiler
+from messages import translate_exception
 from io import StringIO
 from contextlib import redirect_stdout, redirect_stderr
 import traceback
+import os
+import json
+import re
 
 
 class App:
@@ -20,6 +24,7 @@ class App:
         self.preferred_language = tk.StringVar(value="Português")
 
         self.graphics_window = None
+        self.project_browser_window = None
         self.code_editor = None
         self.output_view = None
         self.status_var = tk.StringVar(value="")
@@ -28,23 +33,75 @@ class App:
 
         self.main_container = ttk.Frame(root, style="Cute.TFrame", padding=20)
         self.main_container.pack(expand=True, fill="both")
+        self.root.protocol("WM_DELETE_WINDOW", self.handle_main_window_close)
 
         self.show_language_screen()
+
+    def handle_main_window_close(self):
+        if self.graphics_window and self.graphics_window.winfo_exists():
+            self.root.withdraw()
+        else:
+            self.root.destroy()
 
     def configure_styles(self):
         style = ttk.Style()
         style.theme_use("clam")
 
-        self.root.configure(bg="#FFE9F3")
+        self.root.configure(bg="#EFE3FF")
+
+        style.configure("LangRoot.TFrame", background="#EFE3FF")
+        style.configure("LangCard.TFrame", background="#F5ECFF")
+        style.configure("LangTitle.TLabel", background="#F5ECFF", foreground="#6A4AA0", font=("Georgia", 21, "bold"))
+        style.configure("Lang.TButton", font=("Georgia", 11, "bold"), padding=10, background="#FFFFFF", foreground="#6A4AA0")
+        style.map("Lang.TButton", background=[("active", "#FFD9EC")])
 
         style.configure("Cute.TFrame", background="#FFE9F3")
         style.configure("Card.TFrame", background="#FFF7FB")
-        style.configure("Title.TLabel", background="#FFF7FB", foreground="#D43F8D", font=("Comic Sans MS", 22, "bold"))
-        style.configure("Section.TLabel", background="#FFF7FB", foreground="#6C2A68", font=("Segoe UI", 11, "bold"))
-        style.configure("Body.TLabel", background="#FFF7FB", foreground="#5B415B", font=("Segoe UI", 10))
-        style.configure("Cute.TButton", font=("Segoe UI", 10, "bold"), padding=8)
+        style.configure("Title.TLabel", background="#FFF7FB", foreground="#B79CFF", font=("Georgia", 22, "bold"))
+        style.configure("Section.TLabel", background="#FFF7FB", foreground="#6C2A68", font=("Georgia", 11, "bold"))
+        style.configure("Body.TLabel", background="#FFF7FB", foreground="#5B415B", font=("Georgia", 10))
+        style.configure("Cute.TButton", font=("Georgia", 10, "bold"), padding=8)
         style.map("Cute.TButton", background=[("active", "#FFC7E3")])
+        style.configure("MenuAction.TButton", font=("Georgia", 10, "bold"), padding=8, background="#D9F7C8", foreground="#2F5D2F")
+        style.map("MenuAction.TButton", background=[("active", "#C5EEAF")])
+        style.configure("AccessProjects.TButton", font=("Georgia", 9, "bold"), padding=8, background="#D9F7C8", foreground="#2F5D2F")
+        style.map("AccessProjects.TButton", background=[("active", "#C5EEAF")])
         style.configure("Cute.TCombobox", fieldbackground="#FFFFFF")
+
+    def get_ide_theme(self):
+        if self.get_language_code() == "es":
+            return {
+                "window_bg": "#EAF7FF",
+                "main_bg": "#F3FBFF",
+                "card_bg": "#FFF9D8",
+                "header_bg": "#FFF9D8",
+                "header_fg": "#2E5D8A",
+                "section_fg": "#2F4B63",
+                "body_fg": "#3F4B5A",
+                "button_bg": "#FFFFFF",
+                "button_hover": "#FFEAA8",
+                "editor_bg": "#F7FCFF",
+                "editor_fg": "#244965",
+                "cursor": "#2E7CB7",
+                "output_bg": "#FFFDEB",
+                "output_fg": "#4D4A2B",
+            }
+        return {
+            "window_bg": "#E7F2FF",
+            "main_bg": "#ECF7FF",
+            "card_bg": "#FFF8CC",
+            "header_bg": "#E8FFE8",
+            "header_fg": "#1D5A7A",
+            "section_fg": "#2A5B43",
+            "body_fg": "#325455",
+            "button_bg": "#FFFFFF",
+            "button_hover": "#D7F3A8",
+            "editor_bg": "#F1FFEF",
+            "editor_fg": "#21503E",
+            "cursor": "#246FA2",
+            "output_bg": "#FFFDE1",
+            "output_fg": "#4A4A2A",
+        }
 
     def clear_main_container(self):
         for child in self.main_container.winfo_children():
@@ -52,26 +109,28 @@ class App:
 
     def show_language_screen(self):
         self.clear_main_container()
+        self.root.configure(bg="#EFE3FF")
+        self.main_container.configure(style="LangRoot.TFrame")
 
-        card = ttk.Frame(self.main_container, style="Card.TFrame", padding=24)
+        card = ttk.Frame(self.main_container, style="LangCard.TFrame", padding=24)
         card.pack(expand=True, fill="both")
 
-        ttk.Label(card, text="Choose language / Escolha idioma / Elige idioma", style="Title.TLabel").pack(pady=(8, 22))
+        ttk.Label(card, text="Choose a language", style="LangTitle.TLabel").pack(pady=(8, 22))
 
-        buttons = ttk.Frame(card, style="Card.TFrame")
+        buttons = ttk.Frame(card, style="LangCard.TFrame")
         buttons.pack()
 
         ttk.Button(
             buttons,
             text="Português",
-            style="Cute.TButton",
+            style="Lang.TButton",
             command=lambda: self.select_language("Português")
         ).pack(side="left", padx=10, ipadx=12, ipady=10)
 
         ttk.Button(
             buttons,
             text="Español",
-            style="Cute.TButton",
+            style="Lang.TButton",
             command=lambda: self.select_language("Español")
         ).pack(side="left", padx=10, ipadx=12, ipady=10)
 
@@ -82,6 +141,8 @@ class App:
     def show_main_menu(self):
         self.clear_main_container()
         texts = self.get_texts()
+        self.root.configure(bg="#FFE9F3")
+        self.main_container.configure(style="Cute.TFrame")
 
         self.root.title(texts["main_menu_title"])
 
@@ -94,11 +155,11 @@ class App:
         form.pack(fill="x", pady=(0, 16))
 
         ttk.Label(form, text=texts["name_label"], style="Section.TLabel").grid(row=0, column=0, sticky="w")
-        self.name_entry = ttk.Entry(form, textvariable=self.user_name, font=("Segoe UI", 11))
+        self.name_entry = ttk.Entry(form, textvariable=self.user_name, font=("Georgia", 11))
         self.name_entry.grid(row=1, column=0, sticky="ew", pady=(4, 12))
 
         ttk.Label(form, text=texts["project_label"], style="Section.TLabel").grid(row=2, column=0, sticky="w")
-        self.project_entry = ttk.Entry(form, textvariable=self.project_name, font=("Segoe UI", 11))
+        self.project_entry = ttk.Entry(form, textvariable=self.project_name, font=("Georgia", 11))
         self.project_entry.grid(row=3, column=0, sticky="ew", pady=(4, 0))
 
         form.columnconfigure(0, weight=1)
@@ -109,21 +170,28 @@ class App:
         ttk.Button(
             buttons,
             text=texts["open_ide"],
-            style="Cute.TButton",
+            style="MenuAction.TButton",
             command=self.open_graphics_window
         ).pack(side="left", ipadx=10, ipady=8)
 
         ttk.Button(
             buttons,
             text=texts["change_language"],
-            style="Cute.TButton",
+            style="MenuAction.TButton",
             command=self.show_language_screen
         ).pack(side="left", padx=(10, 0), ipadx=10, ipady=8)
 
         ttk.Button(
             buttons,
+            text=texts["access_old_projects"],
+            style="AccessProjects.TButton",
+            command=self.open_project_browser
+        ).pack(side="left", padx=(10, 0), ipadx=10, ipady=8)
+
+        ttk.Button(
+            buttons,
             text=texts["exit"],
-            style="Cute.TButton",
+            style="MenuAction.TButton",
             command=self.root.destroy
         ).pack(side="right", ipadx=10, ipady=8)
 
@@ -131,6 +199,30 @@ class App:
 
     def get_language_code(self):
         return "es" if self.preferred_language.get().strip() == "Español" else "pt"
+
+    def get_projects_dir(self):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        projects_dir = os.path.join(base_dir, "projects")
+        os.makedirs(projects_dir, exist_ok=True)
+        return projects_dir
+
+    def sanitize_filename(self, value):
+        clean = re.sub(r"[^a-zA-Z0-9_-]+", "_", value.strip())
+        clean = clean.strip("_")
+        return clean or "project"
+
+    def get_project_path(self, project_name):
+        safe_name = self.sanitize_filename(project_name)
+        return os.path.join(self.get_projects_dir(), f"{safe_name}.json")
+
+    def list_saved_project_paths(self):
+        projects_dir = self.get_projects_dir()
+        files = []
+        for name in os.listdir(projects_dir):
+            if name.lower().endswith(".json"):
+                files.append(os.path.join(projects_dir, name))
+        files.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+        return files
 
     def get_texts(self):
         if self.preferred_language.get().strip() == "Español":
@@ -140,12 +232,14 @@ class App:
                 "project_label": "Nombre del proyecto",
                 "open_ide": "Abrir IDE",
                 "change_language": "Cambiar idioma",
+                "access_old_projects": "Acceder proyectos",
                 "exit": "Salir",
                 "window_title": "IDE Gráfico",
                 "greeting": "Bienvenido/a",
                 "code_label": "Editor de código",
                 "output_label": "Salida",
                 "run": "Ejecutar",
+                "save_project": "Guardar proyecto",
                 "translate": "Ver traducción a Python",
                 "clear_code": "Limpiar código",
                 "clear_output": "Limpiar salida",
@@ -159,9 +253,21 @@ class App:
                 "status_output_cleared": "Salida limpiada",
                 "translation_header": "Traducción Python",
                 "error_header": "Error",
+                "error_untranslated": "No se pudo traducir el error",
                 "missing_info_title": "Falta información",
                 "missing_name": "Ingresa tu nombre antes de continuar.",
                 "missing_project": "Ingresa el nombre del proyecto antes de continuar.",
+                "saved_projects_title": "Proyectos guardados",
+                "open_selected_project": "Abrir seleccionado",
+                "cancel": "Cancelar",
+                "no_saved_projects": "No hay proyectos guardados todavía.",
+                "project_saved": "Proyecto guardado",
+                "project_loaded": "Proyecto cargado",
+                "save_failed": "No se pudo guardar el proyecto",
+                "load_failed": "No se pudo abrir el proyecto",
+                "select_project_first": "Selecciona un proyecto de la lista.",
+                "status_saved": "Proyecto guardado",
+                "status_loaded": "Proyecto cargado",
             }
         return {
             "main_menu_title": "Menu Principal",
@@ -169,12 +275,14 @@ class App:
             "project_label": "Nome do projeto",
             "open_ide": "Abrir IDE",
             "change_language": "Trocar idioma",
+            "access_old_projects": "Acessar projetos",
             "exit": "Sair",
             "window_title": "IDE Gráfico",
             "greeting": "Bem-vindo(a)",
             "code_label": "Editor de código",
             "output_label": "Saída",
             "run": "Executar",
+            "save_project": "Salvar projeto",
             "translate": "Ver tradução para Python",
             "clear_code": "Limpar código",
             "clear_output": "Limpar saída",
@@ -188,9 +296,21 @@ class App:
             "status_output_cleared": "Saída limpa",
             "translation_header": "Tradução Python",
             "error_header": "Erro",
+            "error_untranslated": "Não foi possível traduzir o erro",
             "missing_info_title": "Informação faltando",
             "missing_name": "Digite seu nome antes de continuar.",
             "missing_project": "Digite o nome do projeto antes de continuar.",
+            "saved_projects_title": "Projetos salvos",
+            "open_selected_project": "Abrir selecionado",
+            "cancel": "Cancelar",
+            "no_saved_projects": "Ainda não existem projetos salvos.",
+            "project_saved": "Projeto salvo",
+            "project_loaded": "Projeto carregado",
+            "save_failed": "Não foi possível salvar o projeto",
+            "load_failed": "Não foi possível abrir o projeto",
+            "select_project_first": "Selecione um projeto da lista.",
+            "status_saved": "Projeto salvo",
+            "status_loaded": "Projeto carregado",
         }
 
     def set_output(self, text):
@@ -219,45 +339,58 @@ class App:
             self.graphics_window.focus_force()
             return
 
+        theme = self.get_ide_theme()
+        style = ttk.Style()
+        style.configure("IdeRoot.TFrame", background=theme["main_bg"])
+        style.configure("IdeCard.TFrame", background=theme["card_bg"])
+        style.configure("IdeHeader.TLabel", background=theme["header_bg"], foreground=theme["header_fg"], font=("Brush Script MT", 18, "bold"))
+        style.configure("IdeSection.TLabel", background=theme["card_bg"], foreground=theme["section_fg"], font=("Georgia", 11, "bold"))
+        style.configure("IdeBody.TLabel", background=theme["main_bg"], foreground=theme["body_fg"], font=("Georgia", 10))
+        style.configure("Ide.TButton", font=("Georgia", 10, "bold"), padding=8, background=theme["button_bg"])
+        style.map("Ide.TButton", background=[("active", theme["button_hover"])])
+        style.configure("IdeAccessProjects.TButton", font=("Georgia", 9, "bold"), padding=8, background=theme["button_bg"])
+        style.map("IdeAccessProjects.TButton", background=[("active", theme["button_hover"])])
+
         self.graphics_window = tk.Toplevel(self.root)
-        self.graphics_window.configure(bg="#FFF0F7")
+        self.graphics_window.configure(bg=theme["window_bg"])
         self.graphics_window.title(f"{texts['window_title']} - {project}")
         self.graphics_window.geometry("1020x670")
         self.graphics_window.minsize(760, 500)
+        self.root.withdraw()
 
-        main = ttk.Frame(self.graphics_window, style="Cute.TFrame", padding=12)
+        main = ttk.Frame(self.graphics_window, style="IdeRoot.TFrame", padding=12)
         main.pack(expand=True, fill="both")
 
-        top_card = ttk.Frame(main, style="Card.TFrame", padding=10)
+        top_card = ttk.Frame(main, style="IdeCard.TFrame", padding=10)
         top_card.pack(fill="x", pady=(0, 8))
 
         header = ttk.Label(
             top_card,
             text=f"{texts['greeting']}, {name} • {project} • {self.preferred_language.get().strip()}",
-            background="#FFF7FB",
-            foreground="#6C2A68",
-            font=("Comic Sans MS", 11, "bold")
+            style="IdeHeader.TLabel"
         )
         header.pack(anchor="w")
 
-        controls = ttk.Frame(main, style="Cute.TFrame")
+        controls = ttk.Frame(main, style="IdeRoot.TFrame")
         controls.pack(fill="x", pady=(0, 10))
 
-        ttk.Button(controls, text=texts["run"], command=self.run_current_code).pack(side="left")
-        ttk.Button(controls, text=texts["translate"], command=self.show_translation).pack(side="left", padx=(8, 0))
-        ttk.Button(controls, text=texts["clear_code"], command=self.clear_code).pack(side="left", padx=(8, 0))
-        ttk.Button(controls, text=texts["clear_output"], command=self.clear_output).pack(side="left", padx=(8, 0))
-        ttk.Button(controls, text=texts["close"], command=self.close_graphics_window).pack(side="right")
+        ttk.Button(controls, style="Ide.TButton", text=texts["run"], command=self.run_current_code).pack(side="left")
+        ttk.Button(controls, style="Ide.TButton", text=texts["save_project"], command=self.save_project).pack(side="left", padx=(8, 0))
+        ttk.Button(controls, style="IdeAccessProjects.TButton", text=texts["access_old_projects"], command=self.open_project_browser).pack(side="left", padx=(8, 0))
+        ttk.Button(controls, style="Ide.TButton", text=texts["translate"], command=self.show_translation).pack(side="left", padx=(8, 0))
+        ttk.Button(controls, style="Ide.TButton", text=texts["clear_code"], command=self.clear_code).pack(side="left", padx=(8, 0))
+        ttk.Button(controls, style="Ide.TButton", text=texts["clear_output"], command=self.clear_output).pack(side="left", padx=(8, 0))
+        ttk.Button(controls, style="Ide.TButton", text=texts["close"], command=self.close_graphics_window).pack(side="right")
 
         panes = ttk.Panedwindow(main, orient=tk.HORIZONTAL)
         panes.pack(expand=True, fill="both")
 
-        editor_frame = ttk.Frame(panes, style="Card.TFrame", padding=8)
-        output_frame = ttk.Frame(panes, style="Card.TFrame", padding=8)
+        editor_frame = ttk.Frame(panes, style="IdeCard.TFrame", padding=8)
+        output_frame = ttk.Frame(panes, style="IdeCard.TFrame", padding=8)
         panes.add(editor_frame, weight=3)
         panes.add(output_frame, weight=2)
 
-        ttk.Label(editor_frame, text=texts["code_label"], style="Section.TLabel").pack(anchor="w")
+        ttk.Label(editor_frame, text=texts["code_label"], style="IdeSection.TLabel").pack(anchor="w")
 
         editor_scroll_y = ttk.Scrollbar(editor_frame, orient="vertical")
         editor_scroll_x = ttk.Scrollbar(editor_frame, orient="horizontal")
@@ -267,12 +400,12 @@ class App:
             wrap="none",
             yscrollcommand=editor_scroll_y.set,
             xscrollcommand=editor_scroll_x.set,
-            bg="#FFFDF2",
-            fg="#3D2C3D",
-            insertbackground="#D43F8D",
+            bg=theme["editor_bg"],
+            fg=theme["editor_fg"],
+            insertbackground=theme["cursor"],
             relief="flat",
             borderwidth=0,
-            font=("Consolas", 11),
+            font=("Georgia", 11),
             tabs=(36,)
         )
         editor_scroll_y.config(command=self.code_editor.yview)
@@ -281,18 +414,18 @@ class App:
         editor_scroll_x.pack(side="bottom", fill="x")
         self.code_editor.pack(expand=True, fill="both")
 
-        ttk.Label(output_frame, text=texts["output_label"], style="Section.TLabel").pack(anchor="w")
+        ttk.Label(output_frame, text=texts["output_label"], style="IdeSection.TLabel").pack(anchor="w")
 
         output_scroll_y = ttk.Scrollbar(output_frame, orient="vertical")
         self.output_view = tk.Text(
             output_frame,
             wrap="word",
             yscrollcommand=output_scroll_y.set,
-            bg="#F3FDFF",
-            fg="#234055",
+            bg=theme["output_bg"],
+            fg=theme["output_fg"],
             relief="flat",
             borderwidth=0,
-            font=("Consolas", 10),
+            font=("Georgia", 10),
             state="disabled"
         )
         output_scroll_y.config(command=self.output_view.yview)
@@ -300,15 +433,132 @@ class App:
         self.output_view.pack(expand=True, fill="both")
 
         self.status_var.set(texts["status_ready"])
-        ttk.Label(main, textvariable=self.status_var, style="Body.TLabel").pack(anchor="w", pady=(8, 0))
+        ttk.Label(main, textvariable=self.status_var, style="IdeBody.TLabel").pack(anchor="w", pady=(8, 0))
 
         self.graphics_window.bind("<Control-Return>", lambda _event: self.run_current_code())
+        self.graphics_window.bind("<Control-s>", lambda _event: self.save_project())
 
         self.graphics_window.protocol("WM_DELETE_WINDOW", self.close_graphics_window)
         self.code_editor.focus_set()
 
     def current_source_code(self):
         return self.code_editor.get("1.0", tk.END).rstrip()
+
+    def save_project(self):
+        texts = self.get_texts()
+        project = self.project_name.get().strip()
+        name = self.user_name.get().strip()
+        if not name:
+            messagebox.showwarning(texts["missing_info_title"], texts["missing_name"])
+            return
+        if not project:
+            messagebox.showwarning(texts["missing_info_title"], texts["missing_project"])
+            return
+
+        code = self.current_source_code() if self.code_editor else ""
+        payload = {
+            "project_name": project,
+            "user_name": name,
+            "language": self.get_language_code(),
+            "code": code,
+        }
+
+        try:
+            path = self.get_project_path(project)
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+            if self.graphics_window and self.graphics_window.winfo_exists():
+                self.status_var.set(texts["status_saved"])
+            messagebox.showinfo(texts["project_saved"], f"{texts['project_saved']}: {project}")
+        except Exception as exc:
+            messagebox.showerror(texts["error_header"], f"{texts['save_failed']}: {exc}")
+
+    def open_project_browser(self):
+        texts = self.get_texts()
+        project_paths = self.list_saved_project_paths()
+
+        if not project_paths:
+            messagebox.showinfo(texts["saved_projects_title"], texts["no_saved_projects"])
+            return
+
+        if self.project_browser_window and self.project_browser_window.winfo_exists():
+            self.project_browser_window.lift()
+            self.project_browser_window.focus_force()
+            return
+
+        self.project_browser_window = tk.Toplevel(self.root)
+        self.project_browser_window.title(texts["saved_projects_title"])
+        self.project_browser_window.geometry("520x360")
+        self.project_browser_window.minsize(480, 320)
+
+        main = ttk.Frame(self.project_browser_window, padding=12)
+        main.pack(expand=True, fill="both")
+
+        ttk.Label(main, text=texts["saved_projects_title"], style="Section.TLabel").pack(anchor="w", pady=(0, 6))
+
+        list_frame = ttk.Frame(main)
+        list_frame.pack(expand=True, fill="both")
+
+        scrollbar = ttk.Scrollbar(list_frame, orient="vertical")
+        project_listbox = tk.Listbox(list_frame, font=("Georgia", 10), yscrollcommand=scrollbar.set)
+        scrollbar.config(command=project_listbox.yview)
+        scrollbar.pack(side="right", fill="y")
+        project_listbox.pack(side="left", expand=True, fill="both")
+
+        display_items = []
+        for path in project_paths:
+            file_name = os.path.splitext(os.path.basename(path))[0]
+            display_items.append((file_name, path))
+            project_listbox.insert(tk.END, file_name)
+
+        def open_selected_project():
+            selected = project_listbox.curselection()
+            if not selected:
+                messagebox.showwarning(texts["saved_projects_title"], texts["select_project_first"])
+                return
+            _, selected_path = display_items[selected[0]]
+            self.load_project(selected_path)
+            if self.project_browser_window and self.project_browser_window.winfo_exists():
+                self.project_browser_window.destroy()
+                self.project_browser_window = None
+
+        buttons = ttk.Frame(main)
+        buttons.pack(fill="x", pady=(8, 0))
+
+        ttk.Button(buttons, text=texts["open_selected_project"], style="Cute.TButton", command=open_selected_project).pack(side="left")
+        ttk.Button(buttons, text=texts["cancel"], style="Cute.TButton", command=self.close_project_browser).pack(side="right")
+
+        self.project_browser_window.protocol("WM_DELETE_WINDOW", self.close_project_browser)
+
+    def close_project_browser(self):
+        if self.project_browser_window and self.project_browser_window.winfo_exists():
+            self.project_browser_window.destroy()
+        self.project_browser_window = None
+
+    def load_project(self, project_path):
+        try:
+            with open(project_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            language = data.get("language", "pt")
+            self.preferred_language.set("Español" if language == "es" else "Português")
+            texts = self.get_texts()
+            self.user_name.set(data.get("user_name", ""))
+            loaded_project_name = data.get("project_name") or os.path.splitext(os.path.basename(project_path))[0]
+            self.project_name.set(loaded_project_name)
+            code = data.get("code", "")
+
+            if self.graphics_window and self.graphics_window.winfo_exists():
+                self.close_graphics_window()
+
+            self.open_graphics_window()
+            self.code_editor.delete("1.0", tk.END)
+            self.code_editor.insert("1.0", code)
+            self.status_var.set(texts["status_loaded"])
+            messagebox.showinfo(texts["project_loaded"], f"{texts['project_loaded']}: {loaded_project_name}")
+        except Exception as exc:
+            texts = self.get_texts()
+            messagebox.showerror(texts["error_header"], f"{texts['load_failed']}: {exc}")
 
     def run_current_code(self):
         texts = self.get_texts()
@@ -337,14 +587,15 @@ class App:
             self.set_output(final_output)
             self.status_var.set(texts["status_ran"])
         except Exception as exc:
-            translated_message = None
-            if hasattr(self.compiler, "last_translated") and self.compiler.last_translated:
-                translated_message = self.compiler.last_translated
+            try:
+                translated_message = translate_exception(exc, language)
+            except Exception:
+                translated_message = None
             error_details = traceback.format_exc()
             if translated_message:
                 display = f"{texts['error_header']}: {translated_message}\n\n{error_details}"
             else:
-                display = f"{texts['error_header']}: {exc}\n\n{error_details}"
+                display = f"{texts['error_header']}: {texts['error_untranslated']}\n\n{exc}\n\n{error_details}"
             self.set_output(display)
             self.status_var.set(texts["error_header"])
 
@@ -378,6 +629,8 @@ class App:
         if self.graphics_window and self.graphics_window.winfo_exists():
             self.graphics_window.destroy()
             self.graphics_window = None
+        if self.root and self.root.winfo_exists():
+            self.root.deiconify()
 
 
 if __name__ == "__main__":
