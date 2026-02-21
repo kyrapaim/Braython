@@ -20,6 +20,8 @@ class Compiler:
             (r'\benumeracao\b', 'enum'),
             # Print
             (r'\bescreva\b', 'print'),
+            # Input
+            (r'\bleia\b', 'input'),
             # Variable assignment (remove keyword)
             (r'\bdeixe\b\s*', ''),
             # Control flow (senao_se/senão_se before senao/senão, then se)
@@ -57,6 +59,8 @@ class Compiler:
             (r'\benumeracion\b', 'enum'),
             # Print
             (r'\bescribe\b', 'print'),
+            # Input
+            (r'\blee\b', 'input'),
             # Variable assignment (remove keyword)
             (r'\bdeja\b\s*', ''),
             # Control flow (sino_si before sino, then si)

@@ -15,6 +15,7 @@ class TipoToken(Enum):
     NULO = auto()         # Nulo
     ESCREVA = auto()      # escreva
     DEIXE = auto()        # deixe
+    LEIA = auto()         # leia (read/input)
     
     # Operadores
     IGUAL = auto()        # =
@@ -74,6 +75,7 @@ class Lexer:
                 'escreve': TipoToken.ESCREVA,
                 'deixe': TipoToken.DEIXE,
                 'deixa': TipoToken.DEIXE,
+                'leia': TipoToken.LEIA,
             },
             'es': {
                 'si': TipoToken.SE,
@@ -91,6 +93,7 @@ class Lexer:
                 'escriba': TipoToken.ESCREVA,
                 'deja': TipoToken.DEIXE,
                 'deje': TipoToken.DEIXE,
+                'lee': TipoToken.LEIA,
             }
         }
     
