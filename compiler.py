@@ -1,19 +1,13 @@
+from translator import Translator
+
+
 class Compiler:
     def __init__(self):
-        # Initialize lexer, parser, and translator here
-        pass
+        self._translator = Translator()
 
     def compile(self, code: str, language: str) -> str:
-        """ Convert code from Portuguese/Spanish to Python. """  
-        if language == 'pt':
-            # Process Portuguese code
-            pass  
-        elif language == 'es':
-            # Process Spanish code
-            pass  
-        else:
-            raise ValueError("Unsupported language. Use 'pt' for Portuguese or 'es' for Spanish.")
-        return "# Generated Python code"  # Replace with actual translation code
+        """ Convert code from Portuguese/Spanish to Python. """
+        return self._translator.translate(code, language)
 
     def compile_and_run(self, code: str, language: str):
         """ Compile the code and execute the generated Python."""

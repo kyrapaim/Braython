@@ -14,7 +14,24 @@ class TokenType(Enum):
     NULO = auto()         # None
     ESCREVA = auto()      # print
     DEIXE = auto()        # let/var
-    
+    E = auto()            # and
+    OU = auto()           # or
+    NAO = auto()          # not
+    CLASSE = auto()       # class
+    TENTE = auto()        # try
+    EXCETO = auto()       # except
+    FINALMENTE = auto()   # finally
+    COM = auto()          # with
+    COMO = auto()         # as
+    DE = auto()           # from
+    IMPORTAR = auto()     # import
+    LAMBDA = auto()       # lambda
+    PASSE = auto()        # pass
+    QUEBRA = auto()       # break
+    CONTINUA = auto()     # continue
+    EM = auto()           # in
+    EH = auto()           # is
+
     # Operators
     IGUAL = auto()        # =
     MAIS = auto()         # +
@@ -70,6 +87,25 @@ class Lexer:
                 'nulo': TokenType.NULO,
                 'escreva': TokenType.ESCREVA,
                 'deixe': TokenType.DEIXE,
+                'e': TokenType.E,
+                'ou': TokenType.OU,
+                'não': TokenType.NAO,
+                'nao': TokenType.NAO,
+                'classe': TokenType.CLASSE,
+                'tente': TokenType.TENTE,
+                'exceto': TokenType.EXCETO,
+                'finalmente': TokenType.FINALMENTE,
+                'com': TokenType.COM,
+                'como': TokenType.COMO,
+                'de': TokenType.DE,
+                'importar': TokenType.IMPORTAR,
+                'lambda': TokenType.LAMBDA,
+                'passe': TokenType.PASSE,
+                'quebra': TokenType.QUEBRA,
+                'continua': TokenType.CONTINUA,
+                'em': TokenType.EM,
+                'é': TokenType.EH,
+                'eh': TokenType.EH,
             },
             'es': {
                 'si': TokenType.SE,
@@ -84,6 +120,24 @@ class Lexer:
                 'nulo': TokenType.NULO,
                 'escribe': TokenType.ESCREVA,
                 'deja': TokenType.DEIXE,
+                'y': TokenType.E,
+                'o': TokenType.OU,
+                'no': TokenType.NAO,
+                'clase': TokenType.CLASSE,
+                'intenta': TokenType.TENTE,
+                'excepto': TokenType.EXCETO,
+                'finalmente': TokenType.FINALMENTE,
+                'con': TokenType.COM,
+                'como': TokenType.COMO,
+                'de': TokenType.DE,
+                'importar': TokenType.IMPORTAR,
+                'lambda': TokenType.LAMBDA,
+                'pasa': TokenType.PASSE,
+                'rompe': TokenType.QUEBRA,
+                'continúa': TokenType.CONTINUA,
+                'continua': TokenType.CONTINUA,
+                'en': TokenType.EM,
+                'es': TokenType.EH,
             }
         }
     
