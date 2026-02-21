@@ -1,59 +1,38 @@
-# parser.py
+import ast
 
-class ASTNode:
-    def __init__(self, node_type, value=None, children=None):
-        self.node_type = node_type
-        self.value = value
-        self.children = children if children else []
+class ASTParser:
+    def __init__(self, language: str):
+        self.language = language
 
-    def __repr__(self):
-        return f"<{self.node_type}: {self.value}>"
+    def parse(self, code: str):
+        try:
+            tree = ast.parse(code)
+            return tree
+        except SyntaxError as e:
+            return f"Syntax Error: {e}"
 
-class Parser:
-    def __init__(self, tokens):
-        self.tokens = tokens
-        self.current = 0
+    def handle_portuguese(self, code: str):
+        # Implementation for parsing Portuguese syntax
+        return self.parse(code)
 
-    def parse(self):
-        return self.program()
+    def handle_spanish(self, code: str):
+        # Implementation for parsing Spanish syntax
+        return self.parse(code)
 
-    def program(self):
-        nodes = []
-        while self.current < len(self.tokens):
-            nodes.append(self.statement())
-        return ASTNode('Program', children=nodes)
+    def parse_code(self, code: str):
+        if self.language.lower() == 'portuguese':
+            return self.handle_portuguese(code)
+        elif self.language.lower() == 'spanish':
+            return self.handle_spanish(code)
+        else:
+            return "Unsupported language"
 
-    def statement(self):
-        # This is a placeholder for various statement types
-        if self.match('IDENTIFIER'):
-            return self.variable_declaration()
-        raise Exception('Unexpected token')
-
-    def variable_declaration(self):
-        identifier = self.consume('IDENTIFIER')
-        return ASTNode('VariableDeclaration', value=identifier)
-
-    def match(self, token_type):
-        if self.check(token_type):
-            self.current += 1
-            return True
-        return False
-
-    def check(self, token_type):
-        if self.is_at_end():
-            return False
-        return self.tokens[self.current]['type'] == token_type
-
-    def consume(self, token_type):
-        if self.check(token_type):
-            return self.tokens[self.current]['value']
-        raise Exception(f'Expected token type: {token_type}')
-
-    def is_at_end(self):
-        return self.current >= len(self.tokens)
-
-# Example usage
-# tokens = [{'type': 'IDENTIFIER', 'value': 'x'}]
-# parser = Parser(tokens)
-# ast = parser.parse()
-# print(ast)
+# Example usage:
+if __name__ == "__main__":
+    code = """
+    def hello():
+        print("Olá" if language == "portuguese" else "Hola")
+    """
+    parser = ASTParser(language="portuguese")
+    result = parser.parse_code(code)
+    print(result)
