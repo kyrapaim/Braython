@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import messagebox, simpledialog
+from tkinter import messagebox, simpledialog, filedialog
 from compiler import Compiler
 from messages import translate_exception
 from io import StringIO
@@ -28,6 +28,13 @@ class App:
         self.code_editor = None
         self.output_view = None
         self.status_var = tk.StringVar(value="")
+        
+        # Font and display settings
+        self.current_font_size = 11
+        self.code_editor_font = ("Georgia", self.current_font_size)
+        
+        # Recent projects
+        self.recent_projects = []
 
         self.configure_styles()
 
@@ -102,6 +109,123 @@ class App:
             "output_bg": "#FFFDE1",
             "output_fg": "#4A4A2A",
         }
+
+    def increase_font_size(self):
+        if self.current_font_size < 20:
+            self.current_font_size += 1
+            self.code_editor.config(font=("Georgia", self.current_font_size))
+
+    def decrease_font_size(self):
+        if self.current_font_size > 8:
+            self.current_font_size -= 1
+            self.code_editor.config(font=("Georgia", self.current_font_size))
+            self.line_numbers.config(font=("Georgia", self.current_font_size))
+
+    def update_line_numbers(self):
+        """Update line numbers based on code editor content"""
+        if not hasattr(self, 'line_numbers'):
+            return
+        
+        num_lines = int(self.code_editor.index(tk.END).split('.')[0])
+        line_num_text = '\n'.join(str(i) for i in range(1, num_lines))
+        
+        self.line_numbers.config(state="normal")
+        self.line_numbers.delete("1.0", tk.END)
+        self.line_numbers.insert("1.0", line_num_text)
+        self.line_numbers.config(state="disabled")
+
+    def on_editor_scroll(self, *args):
+        """Handle editor scroll and update line numbers"""
+        if hasattr(self, 'line_numbers'):
+            self.line_numbers.yview_moveto(args[0])
+
+    def on_scrollbar_scroll(self, *args):
+        """Handle scrollbar movement"""
+        if hasattr(self, 'code_editor'):
+            self.code_editor.yview(*args)
+            self.update_line_numbers()
+
+    def setup_syntax_highlighting(self):
+        """Configure text tags for syntax highlighting"""
+        # Python keywords
+        keywords = ["if", "elif", "else", "for", "while", "def", "return", "import", "from", "class", "True", "False", "None"]
+        # Braython keywords
+        braython_pt = ["se", "senao", "para", "enquanto", "funcao", "retorna", "verdadeiro", "falso", "nulo", "escreva", "deixe", "leia"]
+        braython_es = ["si", "sino", "para", "mientras", "funcion", "retorna", "verdadero", "falso", "nulo", "escribe", "deja", "lee"]
+        all_keywords = keywords + braython_pt + braython_es
+        
+        self.code_editor.tag_configure("keyword", foreground="#0066CC", font=("Georgia", self.current_font_size, "bold"))
+        self.code_editor.tag_configure("string", foreground="#009900")
+        self.code_editor.tag_configure("comment", foreground="#999999", font=("Georgia", self.current_font_size, "italic"))
+        
+        # Store keywords for highlighting
+        self.keywords = all_keywords
+        
+        # Bind text changes to syntax highlighting and line number updates
+        self.code_editor.bind("<KeyRelease>", self.on_code_change)
+
+    def on_code_change(self, event=None):
+        """Handle code changes - update both syntax highlighting and line numbers"""
+        self.apply_syntax_highlighting(event)
+        self.update_line_numbers()
+
+    def apply_syntax_highlighting(self, event=None):
+        """Apply syntax highlighting to the text"""
+        if not hasattr(self, 'keywords'):
+            return
+        
+        # Remove all existing tags
+        self.code_editor.tag_remove("keyword", "1.0", tk.END)
+        self.code_editor.tag_remove("string", "1.0", tk.END)
+        self.code_editor.tag_remove("comment", "1.0", tk.END)
+        
+        # Get all text
+        content = self.code_editor.get("1.0", tk.END)
+        
+        # Highlight comments
+        for match in re.finditer(r'#.*$', content, re.MULTILINE):
+            start_idx = self.code_editor.index(f"1.0 + {match.start()} chars")
+            end_idx = self.code_editor.index(f"1.0 + {match.end()} chars")
+            self.code_editor.tag_add("comment", start_idx, end_idx)
+        
+        # Highlight strings
+        for match in re.finditer(r'(["\'])(?:(?=(\\?))\2.)*?\1', content):
+            start_idx = self.code_editor.index(f"1.0 + {match.start()} chars")
+            end_idx = self.code_editor.index(f"1.0 + {match.end()} chars")
+            self.code_editor.tag_add("string", start_idx, end_idx)
+        
+        # Highlight keywords
+        for keyword in self.keywords:
+            for match in re.finditer(r'\b' + re.escape(keyword) + r'\b', content):
+                start_idx = self.code_editor.index(f"1.0 + {match.start()} chars")
+                end_idx = self.code_editor.index(f"1.0 + {match.end()} chars")
+                self.code_editor.tag_add("keyword", start_idx, end_idx)
+
+    def export_to_py(self):
+        """Export compiled Python code to a .py file"""
+        texts = self.get_texts()
+        code = self.current_source_code()
+        if not code.strip():
+            messagebox.showwarning(texts["empty_title"], texts["empty_code"])
+            return
+
+        language = self.get_language_code()
+        try:
+            translated = self.compiler.compile(code, language)
+            save_path = filedialog.asksaveasfilename(
+                defaultextension=".py",
+                filetypes=[("Python files", "*.py"), ("All files", "*")]
+            )
+            if not save_path:
+                return
+
+            with open(save_path, 'w', encoding='utf-8') as f:
+                f.write(translated)
+
+            messagebox.showinfo("Success", f"Code exported to {save_path}")
+            self.status_var.set("Code exported")
+        except Exception as exc:
+            messagebox.showerror("Error", f"Failed to export: {exc}")
 
     def clear_main_container(self):
         for child in self.main_container.winfo_children():
@@ -272,6 +396,9 @@ class App:
                 "clear_code_confirm_msg": "¿Esto va a borrar tu código. ¿Estás seguro de que deseas hacer esto?",
                 "confirm_yes": "Sí",
                 "confirm_no": "No",
+                "menu_file": "Archivo",
+                "menu_edit": "Editar",
+                "menu_view": "Ver",
             }
         return {
             "main_menu_title": "Menu Principal",
@@ -319,6 +446,9 @@ class App:
             "clear_code_confirm_msg": "Isso vai limpar seu código. Tem certeza de que deseja fazer isso?",
             "confirm_yes": "Sim",
             "confirm_no": "Não",
+            "menu_file": "Arquivo",
+            "menu_edit": "Editar",
+            "menu_view": "Visualizar",
         }
 
     def set_output(self, text):
@@ -379,16 +509,37 @@ class App:
         )
         header.pack(anchor="w")
 
-        controls = ttk.Frame(main, style="IdeRoot.TFrame")
-        controls.pack(fill="x", pady=(0, 10))
+        # Create menu bar
+        menubar = tk.Menu(self.graphics_window)
+        self.graphics_window.config(menu=menubar)
 
-        ttk.Button(controls, style="Ide.TButton", text=texts["run"], command=self.run_current_code).pack(side="left")
-        ttk.Button(controls, style="Ide.TButton", text=texts["save_project"], command=self.save_project).pack(side="left", padx=(8, 0))
-        ttk.Button(controls, style="IdeAccessProjects.TButton", text=texts["access_old_projects"], command=self.open_project_browser).pack(side="left", padx=(8, 0))
-        ttk.Button(controls, style="Ide.TButton", text=texts["translate"], command=self.show_translation).pack(side="left", padx=(8, 0))
-        ttk.Button(controls, style="Ide.TButton", text=texts["clear_code"], command=self.clear_code).pack(side="left", padx=(8, 0))
-        ttk.Button(controls, style="Ide.TButton", text=texts["clear_output"], command=self.clear_output).pack(side="left", padx=(8, 0))
-        ttk.Button(controls, style="Ide.TButton", text=texts["close"], command=self.close_graphics_window).pack(side="right")
+        # File menu
+        file_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label=texts.get("menu_file", "File" if self.get_language_code() == "es" else "Arquivo"), menu=file_menu)
+        file_menu.add_command(label=texts["save_project"], command=self.save_project)
+        file_menu.add_command(label=texts["access_old_projects"], command=self.open_project_browser)
+        file_menu.add_command(label="Export as .py", command=self.export_to_py)
+        file_menu.add_separator()
+        file_menu.add_command(label=texts["close"], command=self.close_graphics_window)
+
+        # Edit menu
+        edit_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label=texts.get("menu_edit", "Edit" if self.get_language_code() == "es" else "Editar"), menu=edit_menu)
+        edit_menu.add_command(label=texts["clear_code"], command=self.clear_code)
+        edit_menu.add_command(label=texts["clear_output"], command=self.clear_output)
+
+        # View menu
+        view_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label=texts.get("menu_view", "View" if self.get_language_code() == "es" else "Visualizar"), menu=view_menu)
+        view_menu.add_command(label="Increase Font Size", command=self.increase_font_size)
+        view_menu.add_command(label="Decrease Font Size", command=self.decrease_font_size)
+
+        # Quick action buttons (just Run and Translate)
+        quick_buttons = ttk.Frame(main, style="IdeRoot.TFrame")
+        quick_buttons.pack(fill="x", pady=(0, 10))
+
+        ttk.Button(quick_buttons, style="Ide.TButton", text=texts["run"], command=self.run_current_code).pack(side="left")
+        ttk.Button(quick_buttons, style="Ide.TButton", text=texts["translate"], command=self.show_translation).pack(side="left", padx=(8, 0))
 
         panes = ttk.Panedwindow(main, orient=tk.HORIZONTAL)
         panes.pack(expand=True, fill="both")
@@ -400,27 +551,52 @@ class App:
 
         ttk.Label(editor_frame, text=texts["code_label"], style="IdeSection.TLabel").pack(anchor="w")
 
-        editor_scroll_y = ttk.Scrollbar(editor_frame, orient="vertical")
+        # Create a frame for editor with line numbers
+        editor_container = ttk.Frame(editor_frame)
+        editor_container.pack(expand=True, fill="both")
+
+        # Line numbers widget
+        self.line_numbers = tk.Text(
+            editor_container,
+            width=4,
+            padx=3,
+            takefocus=0,
+            border=0,
+            background=theme["editor_bg"],
+            foreground="#888888",
+            font=("Georgia", self.current_font_size),
+            state="disabled"
+        )
+        self.line_numbers.pack(side="left", fill="y")
+
+        # Editor and scrollbars
+        editor_scroll_y = ttk.Scrollbar(editor_container, orient="vertical")
         editor_scroll_x = ttk.Scrollbar(editor_frame, orient="horizontal")
         self.code_editor = tk.Text(
-            editor_frame,
+            editor_container,
             undo=True,
             wrap="none",
-            yscrollcommand=editor_scroll_y.set,
+            yscrollcommand=self.on_editor_scroll,
             xscrollcommand=editor_scroll_x.set,
             bg=theme["editor_bg"],
             fg=theme["editor_fg"],
             insertbackground=theme["cursor"],
             relief="flat",
             borderwidth=0,
-            font=("Georgia", 11),
+            font=("Georgia", self.current_font_size),
             tabs=(36,)
         )
-        editor_scroll_y.config(command=self.code_editor.yview)
+        editor_scroll_y.config(command=self.on_scrollbar_scroll)
         editor_scroll_x.config(command=self.code_editor.xview)
         editor_scroll_y.pack(side="right", fill="y")
+        self.code_editor.pack(side="left", expand=True, fill="both")
         editor_scroll_x.pack(side="bottom", fill="x")
-        self.code_editor.pack(expand=True, fill="both")
+        
+        # Setup syntax highlighting
+        self.setup_syntax_highlighting()
+        
+        # Update line numbers on start
+        self.update_line_numbers()
 
         ttk.Label(output_frame, text=texts["output_label"], style="IdeSection.TLabel").pack(anchor="w")
 
