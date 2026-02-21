@@ -136,7 +136,15 @@ def run_code(code, language, language_name):
     try:
         compiler.compile_and_run(code, language)
     except Exception as e:
+        # Rare: compile_and_run itself raised; show localized label then raw error
         print(f"\n❌ {msg('runtime_error', language)}: {e}")
+
+    # If the compiler captured a runtime exception, show raw error then translation
+    if compiler.last_exception is not None:
+        e = compiler.last_exception
+        print(f"\n❌ {msg('runtime_error', language)}: {e}")
+        if compiler.last_translated:
+            print(f"{compiler.last_translated}")
     
     print(f"\n{'='*60}")
 

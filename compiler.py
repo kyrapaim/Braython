@@ -6,6 +6,10 @@ from messages import msg, translate_exception
 
 class Compiler:
     def __init__(self):
+        # Store last runtime exception and its translation (if any)
+        self.last_exception = None
+        self.last_translated = None
+
         # Portuguese to Python translations (order matters - more specific first)
         self._pt_translations = [
             # Import statements
@@ -140,18 +144,18 @@ class Compiler:
     def compile_and_run(self, code: str, language: str):
         """ Compile the code and execute the generated Python."""
         python_code = self.compile(code, language)
+        # reset last exception info
+        self.last_exception = None
+        self.last_translated = None
         try:
             exec(python_code)
         except Exception as e:
-            # Localized runtime error message and translated detail when possible
+            # Save exception and translated message for callers to display
+            self.last_exception = e
             try:
-                print(f"{msg('runtime_error', language)}: {e}")
-                translated = translate_exception(e, language)
-                if translated:
-                    print(f"{translated}")
+                self.last_translated = translate_exception(e, language)
             except Exception:
-                # Fallback if message localization fails
-                print(f"Runtime error: {e}")
+                self.last_translated = None
 
     def compile_to_file(self, input_file: str, output_file: str, language: str):
         """ Read code from input_file, compile it, and save to output_file. """
