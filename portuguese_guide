@@ -268,6 +268,10 @@ class App:
                 "select_project_first": "Selecciona un proyecto de la lista.",
                 "status_saved": "Proyecto guardado",
                 "status_loaded": "Proyecto cargado",
+                "clear_code_confirm_title": "Confirmar",
+                "clear_code_confirm_msg": "¿Esto va a borrar tu código. ¿Estás seguro de que deseas hacer esto?",
+                "confirm_yes": "Sí",
+                "confirm_no": "No",
             }
         return {
             "main_menu_title": "Menu Principal",
@@ -311,6 +315,10 @@ class App:
             "select_project_first": "Selecione um projeto da lista.",
             "status_saved": "Projeto salvo",
             "status_loaded": "Projeto carregado",
+            "clear_code_confirm_title": "Confirmar",
+            "clear_code_confirm_msg": "Isso vai limpar seu código. Tem certeza de que deseja fazer isso?",
+            "confirm_yes": "Sim",
+            "confirm_no": "Não",
         }
 
     def set_output(self, text):
@@ -625,8 +633,13 @@ class App:
 
     def clear_code(self):
         texts = self.get_texts()
-        self.code_editor.delete("1.0", tk.END)
-        self.status_var.set(texts["status_cleared"])
+        confirm = messagebox.askyesno(
+            texts["clear_code_confirm_title"],
+            texts["clear_code_confirm_msg"]
+        )
+        if confirm:
+            self.code_editor.delete("1.0", tk.END)
+            self.status_var.set(texts["status_cleared"])
 
     def clear_output(self):
         texts = self.get_texts()
