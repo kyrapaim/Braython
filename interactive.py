@@ -218,10 +218,12 @@ def run_code(code, language, language_name):
     except Exception as e:
         print(f"\n❌ {runtime_label(language)}: {e}")
 
-    # If the compiler captured a runtime exception, show raw error then translation
+    # If the compiler captured a runtime exception, show raw error, type, then translation
     if compiler.last_exception is not None:
         e = compiler.last_exception
-        print(f"\n❌ {runtime_label(language)}: {e}")
+        from messages import exception_type_label
+        exc_type_local = exception_type_label(e, language)
+        print(f"\n❌ {runtime_label(language)}: [{exc_type_local}] {e}")
         if compiler.last_translated:
             print(f"{compiler.last_translated}")
 

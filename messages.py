@@ -1,3 +1,32 @@
+EXCEPTION_TYPE_TRANSLATIONS = {
+    'pt': {
+        'NameError': 'NomeNãoDefinido',
+        'TypeError': 'TipoInválido',
+        'SyntaxError': 'ErroDeSintaxe',
+        'ZeroDivisionError': 'DivisãoPorZero',
+        'IndexError': 'ÍndiceForaDoIntervalo',
+        'KeyError': 'ChaveNãoEncontrada',
+        'AttributeError': 'AtributoInexistente',
+        'ValueError': 'ValorInválido',
+        'Exception': 'Exceção',
+    },
+    'es': {
+        'NameError': 'NombreNoDefinido',
+        'TypeError': 'TipoInválido',
+        'SyntaxError': 'ErrorDeSintaxis',
+        'ZeroDivisionError': 'DivisiónPorCero',
+        'IndexError': 'ÍndiceFueraDeRango',
+        'KeyError': 'ClaveNoEncontrada',
+        'AttributeError': 'AtributoInexistente',
+        'ValueError': 'ValorInválido',
+        'Exception': 'Excepción',
+    }
+}
+
+def exception_type_label(exc: Exception, lang: str = 'pt') -> str:
+    t = type(exc).__name__
+    return EXCEPTION_TYPE_TRANSLATIONS.get(lang, EXCEPTION_TYPE_TRANSLATIONS['pt']).get(t, t)
+
 MESSAGES = {
     'pt': {
         'no_code': 'Nenhum código foi digitado.',
