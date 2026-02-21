@@ -399,6 +399,9 @@ class App:
                 "menu_file": "Archivo",
                 "menu_edit": "Editar",
                 "menu_view": "Ver",
+                "export_py": "Exportar como .py",
+                "increase_font": "Aumentar tamaño de fuente",
+                "decrease_font": "Disminuir tamaño de fuente",
             }
         return {
             "main_menu_title": "Menu Principal",
@@ -449,6 +452,9 @@ class App:
             "menu_file": "Arquivo",
             "menu_edit": "Editar",
             "menu_view": "Visualizar",
+            "export_py": "Exportar como .py",
+            "increase_font": "Aumentar tamanho da fonte",
+            "decrease_font": "Diminuir tamanho da fonte",
         }
 
     def set_output(self, text):
@@ -515,24 +521,24 @@ class App:
 
         # File menu
         file_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label=texts.get("menu_file", "File" if self.get_language_code() == "es" else "Arquivo"), menu=file_menu)
+        menubar.add_cascade(label=texts["menu_file"], menu=file_menu)
         file_menu.add_command(label=texts["save_project"], command=self.save_project)
         file_menu.add_command(label=texts["access_old_projects"], command=self.open_project_browser)
-        file_menu.add_command(label="Export as .py", command=self.export_to_py)
+        file_menu.add_command(label=texts["export_py"], command=self.export_to_py)
         file_menu.add_separator()
         file_menu.add_command(label=texts["close"], command=self.close_graphics_window)
 
         # Edit menu
         edit_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label=texts.get("menu_edit", "Edit" if self.get_language_code() == "es" else "Editar"), menu=edit_menu)
+        menubar.add_cascade(label=texts["menu_edit"], menu=edit_menu)
         edit_menu.add_command(label=texts["clear_code"], command=self.clear_code)
         edit_menu.add_command(label=texts["clear_output"], command=self.clear_output)
 
         # View menu
         view_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label=texts.get("menu_view", "View" if self.get_language_code() == "es" else "Visualizar"), menu=view_menu)
-        view_menu.add_command(label="Increase Font Size", command=self.increase_font_size)
-        view_menu.add_command(label="Decrease Font Size", command=self.decrease_font_size)
+        menubar.add_cascade(label=texts["menu_view"], menu=view_menu)
+        view_menu.add_command(label=texts["increase_font"], command=self.increase_font_size)
+        view_menu.add_command(label=texts["decrease_font"], command=self.decrease_font_size)
 
         # Quick action buttons (just Run and Translate)
         quick_buttons = ttk.Frame(main, style="IdeRoot.TFrame")
