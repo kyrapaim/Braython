@@ -1,8 +1,8 @@
-importar re
+import re
 
-de enumeracao importar Enumeracao, auto
+from enum import Enum, auto
 
-class TipoToken(Enumeracao):
+class TipoToken(Enum):
     # Palavras-chave - Português
     SE = auto()           # se
     SENAO = auto()        # senao
@@ -89,43 +89,43 @@ class Lexer:
         }
     
     def tokenizar(self):
-        enquanto self.pos < len(self.codigo):
+        while self.pos < len(self.codigo):
             self._pular_espacos_brancos()
             
-            se self.pos >= len(self.codigo):
-                quebra
+            if self.pos >= len(self.codigo):
+                break
             
             char = self.codigo[self.pos]
             
             # Tratar comentários
-            se char == '#':
+            if char == '#':
                 self._pular_comentario()
-                continua
+                continue
             
             # Tratar strings
-            se char em ('"', "'"):
+            if char in ('"', "'"):
                 self._ler_string()
             # Tratar números
-            senao_se char.isdigit():
+            elif char.isdigit():
                 self._ler_numero()
             # Tratar identificadores e palavras-chave
-            senao_se char.isalpha() ou char == '_':
+            elif char.isalpha() or char == '_':
                 self._ler_identificador()
             # Tratar operadores e delimitadores
-            senao:
+            else:
                 self._ler_operador()
     
     def _pular_espacos_brancos(self):
-        enquanto self.pos < len(self.codigo) e self.codigo[self.pos].isspace():
-            se self.codigo[self.pos] == '\n':
+        while self.pos < len(self.codigo) and self.codigo[self.pos].isspace():
+            if self.codigo[self.pos] == '\n':
                 self.linha += 1
                 self.coluna = 1
-            senao:
+            else:
                 self.coluna += 1
             self.pos += 1
     
     def _pular_comentario(self):
-        enquanto self.pos < len(self.codigo) e self.codigo[self.pos] != '\n':
+        while self.pos < len(self.codigo) and self.codigo[self.pos] != '\n':
             self.pos += 1
     
     def _ler_string(self):
@@ -133,17 +133,17 @@ class Lexer:
         self.pos += 1
         valor = ""
         
-        enquanto self.pos < len(self.codigo) e self.codigo[self.pos] != aspas:
-            se self.codigo[self.pos] == '\\':
+        while self.pos < len(self.codigo) and self.codigo[self.pos] != aspas:
+            if self.codigo[self.pos] == '\\':
                 self.pos += 1
-                se self.pos < len(self.codigo):
+                if self.pos < len(self.codigo):
                     valor += self.codigo[self.pos]
                     self.pos += 1
-            senao:
+            else:
                 valor += self.codigo[self.pos]
                 self.pos += 1
         
-        se self.pos < len(self.codigo):
+        if self.pos < len(self.codigo):
             self.pos += 1
         
         self.tokens.append({
@@ -155,20 +155,20 @@ class Lexer:
     
     def _ler_numero(self):
         valor = ""
-        enquanto self.pos < len(self.codigo) e (self.codigo[self.pos].isdigit() ou self.codigo[self.pos] == '.'): 
+        while self.pos < len(self.codigo) and (self.codigo[self.pos].isdigit() or self.codigo[self.pos] == '.'): 
             valor += self.codigo[self.pos]
             self.pos += 1
         
         self.tokens.append({
             'tipo': TipoToken.NUMERO,
-            'valor': float(valor) se '.' em valor senao int(valor),
+            'valor': float(valor) if '.' in valor else int(valor),
             'linha': self.linha,
             'coluna': self.coluna
         })
     
     def _ler_identificador(self):
         valor = ""
-        enquanto self.pos < len(self.codigo) e (self.codigo[self.pos].isalnum() ou self.codigo[self.pos] == '_'):
+        while self.pos < len(self.codigo) and (self.codigo[self.pos].isalnum() or self.codigo[self.pos] == '_'):
             valor += self.codigo[self.pos]
             self.pos += 1
         
@@ -184,68 +184,68 @@ class Lexer:
     
     def _ler_operador(self):
         char = self.codigo[self.pos]
-        proximo = self.codigo[self.pos + 1] se self.pos + 1 < len(self.codigo) senao ""
+        proximo = self.codigo[self.pos + 1] if self.pos + 1 < len(self.codigo) else ""
         
         dois_caracteres = char + proximo
         
-        se dois_caracteres == "==":
+        if dois_caracteres == "==":
             self.tokens.append({'tipo': TipoToken.IGUAL_IGUAL, 'valor': '==', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 2
-        senao_se dois_caracteres == "!=":
+        elif dois_caracteres == "!=":
             self.tokens.append({'tipo': TipoToken.DIFERENTE, 'valor': '!=', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 2
-        senao_se dois_caracteres == ">=":
+        elif dois_caracteres == ">=":
             self.tokens.append({'tipo': TipoToken.MAIOR_IGUAL, 'valor': '>=', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 2
-        senao_se dois_caracteres == "<=":
+        elif dois_caracteres == "<=":
             self.tokens.append({'tipo': TipoToken.MENOR_IGUAL, 'valor': '<=', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 2
-        senao_se char == '=':
+        elif char == '=':
             self.tokens.append({'tipo': TipoToken.IGUAL, 'valor': '=', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == '+':
+        elif char == '+':
             self.tokens.append({'tipo': TipoToken.MAIS, 'valor': '+', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == '-':
+        elif char == '-':
             self.tokens.append({'tipo': TipoToken.MENOS, 'valor': '-', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == '*':
+        elif char == '*':
             self.tokens.append({'tipo': TipoToken.MULT, 'valor': '*', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == '/':
+        elif char == '/':
             self.tokens.append({'tipo': TipoToken.DIV, 'valor': '/', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == '%':
+        elif char == '%':
             self.tokens.append({'tipo': TipoToken.MODULO, 'valor': '%', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == '>':
+        elif char == '>':
             self.tokens.append({'tipo': TipoToken.MAIOR, 'valor': '>', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == '<':
+        elif char == '<':
             self.tokens.append({'tipo': TipoToken.MENOR, 'valor': '<', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == '(': 
+        elif char == '(': 
             self.tokens.append({'tipo': TipoToken.LPAREN, 'valor': '(', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == ')':
+        elif char == ')':
             self.tokens.append({'tipo': TipoToken.RPAREN, 'valor': ')', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == '{':
+        elif char == '{':
             self.tokens.append({'tipo': TipoToken.LBRACE, 'valor': '{', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == '}':
+        elif char == '}':
             self.tokens.append({'tipo': TipoToken.RBRACE, 'valor': '}', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == ',':
+        elif char == ',':
             self.tokens.append({'tipo': TipoToken.VIRG, 'valor': ',', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == ':':
+        elif char == ':':
             self.tokens.append({'tipo': TipoToken.DOIS_PONTOS, 'valor': ':', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao_se char == ';':
+        elif char == ';':
             self.tokens.append({'tipo': TipoToken.PONTO_VIRG, 'valor': ';', 'linha': self.linha, 'coluna': self.coluna})
             self.pos += 1
-        senao:
+        else:
             self.pos += 1
         
         self.coluna += 1
@@ -253,4 +253,4 @@ class Lexer:
     def obter_tokens(self):
         self.tokenizar()
         self.tokens.append({'tipo': TipoToken.EOF, 'valor': '', 'linha': self.linha, 'coluna': self.coluna})
-        retorna self.tokens
+        return self.tokens
