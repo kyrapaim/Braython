@@ -6,6 +6,21 @@ MESSAGES = {
         'bye': 'Até logo!',
         'prompt_language': 'Selecione o idioma:',
         'menu_prompt': 'Escolha (0-2): '
+        ,
+        'error_occurred': 'Ocorreu um erro durante a execução.',
+        'post_error_option1': '1) Sair para o menu',
+        'post_error_option2': '2) Voltar ao código para editar',
+        'choose_post_error': 'Escolha (1/2): ',
+        'enter_edit_mode': 'Entrando no modo de edição. Comandos: :show | :edit N <conteudo> | :insert N <conteudo> | :delete N | :clear | :done',
+        'code_empty': '(código vazio)',
+        'code_cleared': 'Código limpo.',
+        'invalid_usage': 'Uso inválido. Ex.: :edit 3 print("oi")',
+        'invalid_line_number': 'Número da linha inválido.',
+        'line_out_of_range': 'Linha fora do intervalo.',
+        'line_removed': 'Linha {n} removida.',
+        'line_updated': 'Linha {n} atualizada.',
+        'line_inserted': 'Linha inserida na posição {n}.',
+        'unknown_command': 'Comando desconhecido.'
     },
     'es': {
         'no_code': 'No se ingresó código.',
@@ -14,6 +29,21 @@ MESSAGES = {
         'bye': '¡Hasta luego!',
         'prompt_language': 'Seleccione el idioma:',
         'menu_prompt': 'Elija (0-2): '
+        ,
+        'error_occurred': 'Ocurrió un error durante la ejecución.',
+        'post_error_option1': '1) Salir al menú',
+        'post_error_option2': '2) Volver al código para editar',
+        'choose_post_error': 'Elija (1/2): ',
+        'enter_edit_mode': 'Entrando en modo de edición. Comandos: :show | :edit N <contenido> | :insert N <contenido> | :delete N | :clear | :done',
+        'code_empty': '(código vacío)',
+        'code_cleared': 'Código limpiado.',
+        'invalid_usage': 'Uso inválido. Ej.: :edit 3 print("hola")',
+        'invalid_line_number': 'Número de línea inválido.',
+        'line_out_of_range': 'Línea fuera del rango.',
+        'line_removed': 'Línea {n} eliminada.',
+        'line_updated': 'Línea {n} actualizada.',
+        'line_inserted': 'Línea insertada en la posición {n}.',
+        'unknown_command': 'Comando desconocido.'
     }
 }
 
