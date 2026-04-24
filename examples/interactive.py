@@ -4,8 +4,14 @@ Braython Interactive - Simple terminal interface
 Just press the play button in VS Code to run this!
 """
 
-from compiler import Compiler
-from messages import msg
+import sys
+from pathlib import Path
+
+# Add src directory to path to import braython package
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+
+from braython import Compiler
+from braython.messages import msg
 import sys
 
 def clear_screen():

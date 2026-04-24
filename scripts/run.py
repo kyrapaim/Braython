@@ -4,7 +4,13 @@ Simple runner script for Braython examples.
 Use this to easily run different examples without editing files.
 """
 
-from compiler import Compiler
+import sys
+from pathlib import Path
+
+# Add src directory to path to import braython package
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+
+from braython import Compiler
 
 def run_basic_example():
     """Run the basic example: variables and conditionals"""

@@ -4,15 +4,36 @@ Braython is a compiler that lets you write simple programs in Portuguese or Span
 
 ## Project Structure
 
+This project follows industry-standard Python project organization:
+
 ```
-Braython/
-├── lexer.py           # Tokenizes Portuguese/Spanish source code
-├── parser.py          # AST parser (placeholder for future use)
-├── compiler.py        # Main compiler that orchestrates lexer → translator → Python
-├── exemplo_basico.py  # Basic example: variables, conditionals
-├── exemplo_avancado.py # Advanced example: functions, loops
-├── run.py             # Simple runner script
-└── README.md          # This file
+braython/
+├── README.md                   # Project documentation
+├── .gitignore                  # Git ignore rules
+├── src/
+│   └── braython/               # Main package
+│       ├── __init__.py         # Package initialization
+│       ├── compiler.py         # Main compiler orchestrator
+│       ├── lexer.py            # Tokenizer for Portuguese/Spanish
+│       ├── parser.py           # AST parser
+│       ├── messages.py         # Localized messages and translations
+│       └── gui/
+│           ├── __init__.py     # GUI package initialization
+│           └── web_gui.py      # Web interface
+├── tests/
+│   ├── __init__.py
+│   └── test_compiler.py        # Unit tests
+├── examples/
+│   ├── __init__.py
+│   ├── exemplo_basico.py       # Basic example: variables, conditionals
+│   ├── exemplo_pratico.py      # Practical example: grade calculator
+│   └── interactive.py          # Interactive terminal interface
+├── scripts/
+│   └── run.py                  # Simple runner script
+├── templates/
+│   └── index.html              # Web GUI HTML template
+└── docs/
+    └── portuguese_guide/       # Portuguese language guide
 ```
 
 ## Setup
@@ -23,31 +44,32 @@ Braython/
 
 ### Installation
 
-1. Clone or download all files to a directory:
+1. Clone the repository:
    ```bash
    git clone <repo-url>
-   cd Braython
+   cd braython
    ```
 
-2. Ensure all files are in the same directory:
-   - `lexer.py`
-   - `parser.py`
-   - `compiler.py`
-   - Examples (optional): `exemplo_basico.py`, `exemplo_avancado.py`
+2. Install in development mode (optional, for pip integration):
+   ```bash
+   pip install -e .
+   ```
 
 ## Usage
 
 ### Method 1: Run Examples
 
 ```bash
+cd examples
 python exemplo_basico.py
-python exemplo_avancado.py
+python exemplo_pratico.py
+python interactive.py
 ```
 
 ### Method 2: Use the Runner Script
 
 ```bash
-python run.py
+python scripts/run.py
 ```
 
 Then select which example to run.
@@ -57,7 +79,13 @@ Then select which example to run.
 Create a Python script:
 
 ```python
-from compiler import Compiler
+import sys
+from pathlib import Path
+
+# Add src to path to import braython
+sys.path.insert(0, str(Path(__file__).parent / 'src'))
+
+from braython import Compiler
 
 code = '''
 escreva("Olá, Mundo!")
@@ -68,15 +96,10 @@ escreva(x + 5)
 Compiler().compile_and_run(code, 'pt')
 ```
 
-Run it:
-```bash
-python seu_programa.py
-```
-
 ### Method 4: Compile to a File
 
 ```python
-from compiler import Compiler
+from braython import Compiler
 
 # Compile Portuguese to Python file
 Compiler().compile_to_file('programa.br', 'programa.py', 'pt')
@@ -86,6 +109,16 @@ Then run the generated Python:
 ```bash
 python programa.py
 ```
+
+### Method 5: Web GUI
+
+Run the web interface:
+```bash
+cd src/braython/gui
+python web_gui.py
+```
+
+Then open your browser to `http://localhost:8000`
 
 ## Portuguese Keywords
 

@@ -13,10 +13,15 @@ import webbrowser
 import time
 from io import StringIO
 from urllib.parse import urlparse, parse_qs
-from compiler import Compiler
+from pathlib import Path
+from braython.compiler import Compiler
 
 PORT = 8000
 compiler = Compiler()
+
+# Calculate project root (go up from src/braython/gui to project root)
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+TEMPLATES_DIR = PROJECT_ROOT / 'templates'
 
 class BraythonHandler(http.server.BaseHTTPRequestHandler):
     
@@ -26,7 +31,7 @@ class BraythonHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'text/html; charset=utf-8')
             self.end_headers()
-            with open('templates/index.html', 'rb') as f:
+            with open(TEMPLATES_DIR / 'index.html', 'rb') as f:
                 self.wfile.write(f.read())
         else:
             self.send_response(404)

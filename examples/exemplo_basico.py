@@ -1,6 +1,12 @@
 # Example using the Braython compiler
 
-from compiler import Compiler
+import sys
+from pathlib import Path
+
+# Add src directory to path to import braython package
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+
+from braython import Compiler
 
 # Portuguese code to be compiled
 codigo_portugues = '''
